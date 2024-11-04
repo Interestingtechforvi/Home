@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.responsivevoice.org/responsivevoice.js"></script>
+
+
+  <style>
+    /* Add your custom CSS styles here */
+    #moreOptionsButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      cursor: pointer;
+      border: none;
+    }
+
+    #navigationDrawer {
+      display: none;
+      position: absolute;
+      top: 50px; /* Adjust as needed */
+      left: 10px; /* Adjust as needed */
+      background-color: #fff;
+      color: #333;
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: 5px;
+    }
+
+    #navigateUpButton {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      border: none;
+    }
+
+body {
+font-family: Arial, sans-serif;
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+margin: 0;
+padding: 0;
+}
+.content {
+flex: 1;
+border: 1px solid #ddd;
+padding: 20px;
+}
+.tab-container {
+display: flex;
+justify-content: space-around;
+border-top: 1px solid #ddd;
+padding: 10px 0;
+}
+.tab {
+padding: 10px 20px;
+cursor: pointer;
+}
+.tab:hover {
+background-color: #f1f1f1;
+}
+.active {
+display: block;
+}
+</style>
+<script>
+function openTab(tabName) {
+const contents = document.querySelectorAll('.content');
+contents.forEach(content => content.classList.remove('active'));
+document.getElementById(tabName).classList.add('active');
+}
+
+function goToLink(url) {
+window.location.href = url;
+}
+</script>
+</head><body onload="openTab('home')">
+
+<div>
+<audio id="openingSound" src="https://commondatastorage.googleapis.com/codeskulptor-assets/week7-brrring.m4a"></audio>
+
+<button id="moreOptionsButton" onclick="toggleDrawer()">More Options</button>
+
+<div id="navigationDrawer">
+  <button id="navigateUpButton" onclick="moreOptions()">Navigate Up</button>
+  <label for="drawerSelect">Select an option</label>
+  <select id="drawerSelect" onchange="navigate()" aria-label="click to expand more option">
+    <option selected disabled>Select an option</option>
+    <option value="https://blindtechcommunity.com/">Join Our Groups</option>
+    <option value="https://whatsapp.com/channel/0029VaA8GlgATRSw63HaXl38">Join Our WhatsApp Channel</option>
+    <option value="https://youtube.com/@interestingtechforvi?si=FM0Qpw2WYcHBLBsK">Our Official YouTube Channel</option>
+    <option value="contact">Contact Us</option>
+  </select>
+</div>
+
+<header>
+  Interesting tech for v i
+</header>
+<!-- Add this form before the main content -->
+<form id="userForm" style="display: none;">
+  <label for="name">Name:</label>
+  <input type="text" id="name" required>
+  <label for="email">Email:</label>
+  <input type="email" id="email" required>
+  <label for="password">create your Password:</label>
+  <input type="password" id="password" required>
+  <button onclick="saveUserDetails()">Submit</button>
+</form>
+
+<script>
+  function saveUserDetails() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    // Save user details locally (You can use localStorage or IndexedDB for this)
+    localStorage.setItem("userName", name);
+    localStorage.setItem("userEmail", email);
+    localStorage.setItem("userPassword", password);
+
+    // Show the main content and play the GitHub audio
+    document.getElementById("userForm").style.display = "none";
+    document.getElementById("main").style.display = "block";
+    document.getElementById("githubAudio").play();
+  }
+</script>
+
+<main>
+  <!-- Add your main content here -->
+  👋 Welcome to interesting tech for v i.
+</main>
+  <audio controls id="githubAudio" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bug.mp3?raw=true" autoplay></audio>
+
+<footer>
+  <p>A multi-featured application for the blind and visually impaired individuals <span id="datetime"></span></p>
+  <p>Device Battery is: <span id="batteryLevel"></span></p>
+  <button id="shareButton" onclick="share()">Share</button>
+  <a href='go:A'>Chat Zone</a>
+<h1> audio tech quiz 2024.</h1>
+<a href='go:tech'>tech quiz 2024</a>
+</footer>
+
+<ul id="contactOptions" style="display:none;">
+  <li><a href="tel:+919041651929">Call Us</a></li>
+  <li><a href="mailto:kuldeepbehera93@gmail.com">Mail Us</a></li>
+</ul>
+
+<script>
+  function toggleDrawer() {
+    const navigationDrawer = document.getElementById("navigationDrawer");
+    const openingSound = document.getElementById("openingSound");
+
+    if (navigationDrawer.style.display === "none" || navigationDrawer.style.display === "") {
+      navigationDrawer.style.display = "block";
+      openingSound.play(); // Play the opening sound
+    } else {
+      navigationDrawer.style.display = "none";
+    }
+  }
+
+  function navigate() {
+    const selectElement = document.getElementById("drawerSelect");
+    const selectedValue = selectElement.value;
+
+    if (selectedValue === "contact") {
+      toggleContactOptions();
+    } else {
+      window.location.href = selectedValue;
+    }
+  }
+
+  function toggleContactOptions() {
+    const contactOptions = document.getElementById("contactOptions");
+    contactOptions.style.display = contactOptions.style.display === "none" ? "block" : "none";
+  }
+
+  function showDateTime() {
+    const now = new Date();
+    const options = { weekday: 'short', month: 'short', day: 'numeric' };
+    const dateString = now.toLocaleDateString('en-US', options);
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const second = now.getSeconds();
+    const timeString = `${hour}:${minute}:${second}`;
+    let greeting;
+
+    if (hour < 12) {
+      greeting = "Good morning";
+    } else if (hour < 16) {
+      greeting = "Good afternoon";
+    } else if (hour < 20) {
+      greeting = "Good evening";
+    } else {
+      greeting = "Good night";
+    }
+
+    document.getElementById("datetime").innerHTML = `${greeting}, ${dateString} ${timeString}`;
+  }
+
+  setInterval(showDateTime, 1000);
+
+  // Get and display device battery level
+  navigator.getBattery().then(function(battery) {
+    var batteryLevel = Math.floor(battery.level * 100) + "%";
+    document.getElementById("batteryLevel").textContent = batteryLevel;
+  });
+
+  function share() {
+    window.location.href = "http://action_share";
+  }
+
+</script>
+<div class="tab-container">
+<div class="tab" onclick="openTab('home')">Home Tab</div>
+<div class="tab" onclick="goToLink('go:tools')">Tools Tab</div>
+<div class="tab" onclick="goToLink('go:education')">Educational Tools</div>
+<div class="tab" onclick="goToLink('go:fun')">Fun Zone</div>
+</div>
+
+</body>
+</html>
