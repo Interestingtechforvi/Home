@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Quiz 2024 by Interesting Tech for VI</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+}
+
+#quiz-section, #question-section, #result-section {
+  display: none;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 500px;
+}
+
+#progress-bar {
+  width: 100%;
+  background-color: #e0e0e0;
+  margin-top: 20px;
+}
+
+#progress {
+  width: 0;
+  height: 30px;
+  background-color: #4caf50;
+  transition: width 0.3s;
+}
+
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+</style>
+</head>
+<body>
+<h1>Welcome to Tech Quiz 2024 by Interesting Tech for VI</h1>
+<div id="quiz-section">
+  <label for="name">Enter your name:</label>
+  <input type="text" id="name" required>
+  <br><br>
+  <label for="whatsapp">Enter your WhatsApp number:</label>
+  <input type="text" id="whatsapp" required>
+  <br><br>
+  <button onclick="startQuiz()">Start Quiz</button>
+</div>
+<button id="play-quiz-btn" onclick="playInstructions()">Play Quiz Now</button>
+<div id="question-section">
+  <h2 id="question-title"></h2>
+  <button onclick="playAudio()">Repeat Question</button>
+  <div id="options">
+    <button onclick="checkAnswer('a')">A</button>
+    <button onclick="checkAnswer('b')">B</button>
+    <button onclick="checkAnswer('c')">C</button>
+    <button onclick="checkAnswer('d')">D</button>
+  </div>
+  <button id="next-question-btn" style="display:none;" onclick="nextQuestion()">Next Question</button>
+  <div id="progress-bar">
+    <div id="progress"></div>
+  </div>
+  <h3 id="score-display">Score: 0</h3>
+</div>
+<div id="result-section">
+  <form id="result-form">
+    <label for="final-name">Name:</label>
+    <input type="text" id="final-name" name="name" readonly>
+    <br><br>
+    <label for="final-whatsapp">WhatsApp Number:</label>
+    <input type="text" id="final-whatsapp" name="whatsapp" readonly>
+    <br><br>
+    <label for="final-score">Final Score:</label>
+    <input type="text" id="final-score" name="score" readonly>
+    <br><br>
+    <button type="button" onclick="submitForm()">Submit</button>
+  </form>
+  <div id="submission-message"></div>
+</div>
+<script>
+const questions = [
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question1.mp3', correct: 'c', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct1.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong1.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question2.wav', correct: 'b', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct1.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong2.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question3.mp3', correct: 'd', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct3.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong3.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question4.mp3', correct: 'd', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct4.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong4.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question5.mp3', correct: 'a', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct5.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong5.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question6.mp3', correct: 'd', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct6.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong6.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question7.mp3', correct: 'a', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct7.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong7.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question8.mp3', correct: 'd', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct8.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong8.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question9.mp3', correct: 'a', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct9.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong9.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question10.mp3', correct: 'a', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct10.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong10.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question11.mp3', correct: 'b', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct11.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong11.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question12.mp3', correct: 'd', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct12.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong12.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question13.mp3', correct: 'c', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct13.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong13.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question14.mp3', correct: 'd', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct14.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong14.mp3' },
+  { audio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/question15.mp3', correct: 'a', correctAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/correct15.mp3', wrongAudio: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/wrong15.mp3' }
+];
+let currentQuestion = 0;
+let score = 0;
+let timer;
+let userName;
+let currentAudio;
+
+function playInstructions() {
+  document.getElementById('play-quiz-btn').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  const audio = new Audio('https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/instructions.mp3');
+  audio.play();
+  document.getElementById('pause-instructions-btn').style.display = 'block';
+}
+
+function startQuiz() {
+  userName = document.getElementById('name').value;
+  const whatsapp = document.getElementById('whatsapp').value;
+  if (!userName || !whatsapp) return alert('Please fill in all fields.');
+  document.getElementById('quiz-section').style.display = 'none';
+  document.getElementById('question-section').style.display = 'block';
+  loadQuestion();
+}
+
+function loadQuestion() {
+  document.getElementById('options').style.display = 'block';
+  document.getElementById('next-question-btn').style.display = 'none';
+  document.getElementById('question-title').textContent = `Question ${currentQuestion + 1}`;
+  playAudio();
+}
+
+function playAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+  currentAudio = new Audio(questions[currentQuestion].audio);
+  currentAudio.play();
+  startTimer();
+}
+
+function startTimer() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    document.getElementById('options').style.display = 'none';
+    document.getElementById('next-question-btn').style.display = 'block';
+  }, 65000);
+}
+
+function checkAnswer(selected) {
+  clearTimeout(timer);
+  document.getElementById('options').style.display = 'none';
+  const question = questions[currentQuestion];
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+  const audio = new Audio(selected === question.correct ? question.correctAudio : question.wrongAudio);
+  audio.play();
+  audio.onended = () => {
+    // Play the next question after the feedback audio ends
+    nextQuestion();
+  };
+  document.getElementById('next-question-btn').style.display = 'none'; // Hide the button while feedback is playing
+  if (selected === question.correct) {
+    score++;
+    // alert(`${userName}, you are correct! You got 1 mark.`);
+  } else {
+    // alert(`Sorry ${userName}, that's incorrect. Try the next question.`);
+  }
+  document.getElementById('score-display').textContent = `Score: ${score}`;
+  document.getElementById('progress').style.width = `${(currentQuestion + 1) / questions.length * 100}%`;
+}
+
+function nextQuestion() {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    loadQuestion();
+  } else {
+    endQuiz();
+  }
+}
+
+function endQuiz() {
+  document.getElementById('question-section').style.display = 'none';
+  document.getElementById('result-section').style.display = 'block';
+  document.getElementById('final-name').value = userName;
+  document.getElementById('final-whatsapp').value = document.getElementById('whatsapp').value;
+  document.getElementById('final-score').value = score;
+  const audio = new Audio('https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/completion.mp3');
+  audio.play();
+}
+
+function submitForm() {
+  const form = document.getElementById('result-form');
+  const data = new FormData(form);
+  fetch('https://formspree.io/f/mnnqdbkd', {
+    method: 'POST',
+    body: data,
+    headers: {
+      'Accept': 'application/json'
+    }
+  }).then(response => {
+    if (response.ok) {
+      document.getElementById('submission-message').textContent = 'Submission successful! Thank you for participation on tech quiz 2024 by interesting tech . We will reach you soon. !';
+    } else {
+      throw new Error('Network response was not ok.');
+    }
+  }).catch(error => {
+    document.getElementById('submission-message').textContent = 'Submission failed, please try again.';
+  });
+}
+
+// Automatically proceed to the next question after a correct or incorrect answer
+const options = document.querySelectorAll('#options button');
+options.forEach(option => {
+  option.addEventListener('click', () => {
+    // No need for setTimeout here, the next question is played after the feedback audio ends
+    // setTimeout(() => { // Add a small delay to allow audio to play
+    //   nextQuestion();
+    // }, 15000);
+  });
+});
+
+// Pause instructions audio
+let instructionsAudio;
+
+function pauseInstructions() {
+  if (instructionsAudio.paused) {
+    instructionsAudio.play();
+    document.getElementById('pause-instructions-btn').textContent = 'Pause Instructions';
+  } else {
+    instructionsAudio.pause();
+    document.getElementById('pause-instructions-btn').textContent = 'Play Instructions';
+  }
+}
+
+function playInstructions() {
+  document.getElementById('play-quiz-btn').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  instructionsAudio = new Audio('https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/instructions.mp3');
+  instructionsAudio.play();
+  document.getElementById('pause-instructions-btn').style.display = 'block';
+  document.getElementById('pause-instructions-btn').textContent = 'Pause Instructions';
+}
+
+// Add pause button for instructions
+const pauseInstructionsBtn = document.createElement('button');
+pauseInstructionsBtn.id = 'pause-instructions-btn';
+pauseInstructionsBtn.onclick = pauseInstructions;
+pauseInstructionsBtn.style.display = 'none';
+pauseInstructionsBtn.textContent = 'Pause Instructions';
+document.body.insertBefore(pauseInstructionsBtn, document.getElementById('quiz-section'));
+
+</script>
+</body>
+</html>
