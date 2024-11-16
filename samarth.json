@@ -1,0 +1,37 @@
+{
+    "botId": "5d10d9f8-e133-4cd1-b999-fc2194ba5ba5",
+    "configuration": {
+        "composerPlaceholder": " Compose Message",
+        "botName": "I T V I samarth Assistant by Interesting tech For V I.",
+        "botAvatar": "",
+        "botDescription": "",
+        "website": {
+            "title": "",
+            "link": ""
+        },
+        "email": {
+            "title": "",
+            "link": ""
+        },
+        "phone": {
+            "title": "",
+            "link": ""
+        },
+        "termsOfService": {
+            "title": "",
+            "link": ""
+        },
+        "privacyPolicy": {
+            "title": "",
+            "link": ""
+        },
+        "color": "#2563eb",
+        "variant": "solid",
+        "themeMode": "light",
+        "fontFamily": "rubik",
+        "radius": 2,
+        "showPoweredBy": false,
+        "allowFileUpload": true
+    },
+    "clientId": "0007446e-0325-4755-9408-789bad2599cc"
+}
