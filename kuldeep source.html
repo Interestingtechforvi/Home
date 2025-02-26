@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Source Code Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        #sourceCodeContainer {
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        #securityWarning {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffcc00;
+            padding: 15px;
+            border: 1px solid #cc9900;
+            z-index: 1000;
+        }
+
+        .tab {
+            display: none;
+        }
+
+        .tab-buttons {
+            margin-top: 20px;
+        }
+
+        .tab-buttons button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+
+        #pageContent {
+            display: none;
+            /* Initially hide page content */
+        }
+
+        /* Style for feature results */
+        .feature-result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        /* Hidden class to hide elements */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Advanced Source Code Viewer</h1>
+
+    <div class="warning" id="securityWarning" role="dialog" aria-labelledby="warningTitle"
+        aria-describedby="warningDesc">
+        <h2 id="warningTitle">Security Warning</h2>
+        <p id="warningDesc">You are accessing a security-sensitive region. This tool is for educational purposes only.</p>
+        <label for="agreement">
+            <input type="checkbox" id="agreement"> I agree to use this tool only for educational purposes and understand the
+            risks.
+        </label>
+        <button onclick="dismissWarning()" aria-label="OK">OK</button>
+    </div>
+
+    <div class="container" id="pageContent">
+        <input type="text" id="urlInput" placeholder="Enter Website URL (e.g. https://example.com)">
+        <button onclick="fetchSource()" aria-label="View Source">View Source</button>
+        <button onclick="copySource()" aria-label="Copy Code">Copy Code</button>
+        <button onclick="livePreview()" aria-label="Live Review">Live Review</button>
+        <button onclick="openAbout()" aria-label="About">About</button>
+        <button onclick="showMoreFeatures()" aria-label="More Features">More Features</button>
+
+        <p id="statusMessage"></p>
+        <div id="sourceCodeContainer">
+            <p id="sourceCode">Source code will appear here...</p>
+        </div>
+    </div>
+
+    <!-- More Features Tab -->
+    <div id="moreFeaturesTab" class="tab">
+        <h2>More Features</h2>
+        <button onclick="analyzeCode()" aria-label="Analyze Code">Analyze Code</button>
+        <button onclick="extractLinks()" aria-label="Extract Links">Extract Links</button>
+        <button onclick="minifyCode()" aria-label="Minify Code">Minify Code</button>
+        <button onclick="beautifyCode()" aria-label="Beautify Code">Beautify Code</button>
+        <button onclick="downloadCode()" aria-label="Download as .txt">Download as .txt</button>
+        <button onclick="downloadHTML()" aria-label="Download as .html">Download as .html</button>
+        <button onclick="countWords()" aria-label="Count Words & Characters">Count Words & Characters</button>
+        <input type="text" id="searchText" placeholder="Text to find">
+        <button onclick="findText()" aria-label="Find Text">Find Text</button>
+        <button onclick="clearSource()" aria-label="Clear Source Code">Clear Source Code</button>
+        <button onclick="goBack()" aria-label="Go Back to Full Content">Go Back</button>
+        <p id="featureMessage"></p>
+        <div id="extractedLinks" class="feature-result"></div>
+        <div id="minifiedCodeResult" class="feature-result"></div>
+        <div id="beautifiedCodeResult" class="feature-result"></div>
+        <div id="analysisResult" class="feature-result"></div>
+        <div id="wordCountResult" class="feature-result"></div>
+        <div id="findTextResult" class="feature-result"></div>
+        <button id="goBackFromResult" onclick="goBack()" aria-label="Go Back" class="hidden">Go Back to More
+            Features</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!localStorage.getItem("warningDismissed")) {
+                document.getElementById("securityWarning").style.display = "block";
+                document.getElementById("securityWarning").focus(); // Focus the dialog for screen readers
+            } else {
+                document.getElementById("pageContent").style.display = "block"; // Show content if warning dismissed
+            }
+        });
+
+        function dismissWarning() {
+            var agreement = document.getElementById("agreement");
+            if (!agreement.checked) {
+                alert("You must agree to the terms to proceed.");
+                return;
+            }
+            document.getElementById("securityWarning").style.display = "none";
+            localStorage.setItem("warningDismissed", "true");
+            document.getElementById("pageContent").style.display = "block"; // Show content after dismissing warning
+        }
+
+        async function fetchSource() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('Please enter a valid URL.');
+                return;
+            }
+            document.getElementById('statusMessage').textContent = "Loading...";
+            try {
+                const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+                if (!response.ok) throw new Error("Failed to fetch source code.");
+                const data = await response.text();
+                document.getElementById('sourceCode').textContent = data;
+                document.getElementById('statusMessage').textContent = "Source code loaded successfully!";
+            } catch (error) {
+                document.getElementById('sourceCode').textContent = "Error fetching source code.";
+                document.getElementById('statusMessage').textContent = "Error fetching data!";
+            }
+        }
+
+        function copySource() {
+            const sourceCode = document.getElementById('sourceCode').textContent;
+            if (!sourceCode.trim()) {
+                alert("No source code to copy!");
+                return;
+            }
+            navigator.clipboard.writeText(sourceCode);
+            alert("Source code copied!");
+        }
+
+        function livePreview() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('Please enter a valid URL.');
+                return;
+            }
+            window.open(url, '_blank');
+        }
+
+        function openAbout() {
+            alert("Advanced Source Code Viewer\n\nFeatures:\n- View source code of websites\n- Copy and preview code\n- Live review in web browser\n- Secure access with warning system\n\nDeveloped by Sandeep Ghimire");
+        }
+
+        function showMoreFeatures() {
+            document.getElementById('pageContent').classList.add('hidden');
+            document.getElementById('moreFeaturesTab').style.display = "block";
+            document.getElementById('moreFeaturesTab').focus(); // Set focus to the more features tab
+        }
+
+        function goBack() {
+            document.getElementById('moreFeaturesTab').style.display = 'none';
+            document.getElementById('pageContent').classList.remove('hidden');
+            document.getElementById('pageContent').focus(); // Set focus back to the main content
+
+            // Clear all feature results when going back
+            const featureResults = document.querySelectorAll('.feature-result');
+            featureResults.forEach(result => {
+                result.innerHTML = '';
+            });
+            showFeatureElements();
+        }
+
+        // Function to hide all elements inside moreFeaturesTab except the result and the Go Back button
+        function hideFeatureElements() {
+            const moreFeaturesTab = document.getElementById('moreFeaturesTab');
+            const children = moreFeaturesTab.children;
+
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                if (!child.classList.contains('feature-result') &&
+                    child.id !== 'goBackFromResult') {
+                    child.classList.add('hidden');
+                }
+            }
+            document.getElementById('goBackFromResult').classList.remove('hidden');
+        }
+
+
+        // Function to show all hidden elements inside moreFeaturesTab
+        function showFeatureElements() {
+            const moreFeaturesTab = document.getElementById('moreFeaturesTab');
+            const children = moreFeaturesTab.children;
+
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                child.classList.remove('hidden');
+            }
+            document.getElementById('goBackFromResult').classList.add('hidden'); // Ensure the "Go Back" button is hidden when showing all elements
+        }
+
+
+        // More Features
+        function analyzeCode() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            if (!code.trim()) {
+                alert("No code to analyze!");
+                return;
+            }
+            let formatted = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            document.getElementById('analysisResult').innerHTML = `<p>${formatted}</p>`;
+            document.getElementById('featureMessage').textContent = "Code analyzed!";
+
+        }
+
+
+        function extractLinks() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            let links = [...code.matchAll(/href="([^"]*)"/g)].map(match => match[1]);
+            const extractedLinksDiv = document.getElementById('extractedLinks');
+            extractedLinksDiv.innerHTML = links.length ?
+                "<h3>Extracted Links:</h3><ul>" + links.map(link => `<li><a href="${link}" target="_blank">${link}</a></li>`).join('') + "</ul>" :
+                "No links found!";
+            document.getElementById('featureMessage').textContent = "Links extracted!";
+
+        }
+
+        function minifyCode() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            if (!code.trim()) {
+                alert("No code to minify!");
+                return;
+            }
+            let minifiedCode = code.replace(/\s+/g, ' ').trim();
+            document.getElementById('minifiedCodeResult').textContent = minifiedCode;
+            document.getElementById('featureMessage').textContent = "Code minified!";
+
+        }
+
+        function beautifyCode() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            if (!code.trim()) {
+                alert("No code to beautify!");
+                return;
+            }
+            // Basic beautification: Add newlines after certain characters
+            let beautifiedCode = code.replace(/(>)(<)/g, '$1\n$2');
+            document.getElementById('beautifiedCodeResult').textContent = beautifiedCode;
+            document.getElementById('featureMessage').textContent = "Code beautified!";
+
+        }
+
+
+        function downloadCode() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            let blob = new Blob([code], {
+                type: "text/plain"
+            });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "source_code.txt";
+            link.click();
+            document.getElementById('featureMessage').textContent = "Code downloaded as .txt!";
+
+        }
+
+        function downloadHTML() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            let blob = new Blob([code], {
+                type: "text/html"
+            });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "source_code.html";
+            link.click();
+            document.getElementById('featureMessage').textContent = "Code downloaded as .html!";
+
+        }
+
+        function countWords() {
+            hideFeatureElements();
+            let code = document.getElementById('sourceCode').textContent;
+            let words = code.match(/\b\w+\b/g) || [];
+            document.getElementById('wordCountResult').textContent = `Characters: ${code.length}, Words: ${words.length}`;
+            document.getElementById('featureMessage').textContent = "Word count complete!";
+
+        }
+
+        function findText() {
+            hideFeatureElements();
+            const searchText = document.getElementById('searchText').value;
+            let codeElement = document.getElementById('sourceCode');
+            let code = codeElement.textContent;
+            if (!searchText) {
+                alert("Please enter text to find.");
+                return;
+            }
+
+            let regex = new RegExp(`(${searchText})`, 'gi');
+            let highlighted = code.replace(regex, '<span class="highlight">$1</span>');
+            document.getElementById('findTextResult').innerHTML = highlighted;
+            document.getElementById('featureMessage').textContent = `Found "${searchText}" in the source code!`;
+
+        }
+
+        function clearSource() {
+            showFeatureElements();
+            document.getElementById('sourceCode').textContent = "Source code will appear here...";
+            document.getElementById('featureMessage').textContent = "";
+            document.getElementById('extractedLinks').innerHTML = "";
+            document.getElementById('analysisResult').innerHTML = "";
+            document.getElementById('wordCountResult').innerHTML = "";
+            document.getElementById('findTextResult').innerHTML = "";
+            document.getElementById('minifiedCodeResult').innerHTML = "";
+            document.getElementById('beautifiedCodeResult').innerHTML = "";
+            document.getElementById('searchText').value = "";
+        }
+    </script>
+</body>
+
+</html>
