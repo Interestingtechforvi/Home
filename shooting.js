@@ -1,0 +1,351 @@
+        let playerScore = 0;
+        let enemyScore = 0;
+        let enemyDirection = "";
+        let enemyTimeout;
+        let gameInterval;
+        let isPaused = false;
+        let enemyAttacked = false;
+        const enemyDirections = ['left', 'center', 'right'];
+        let mainScreenAudio;
+        let volumeBeforeGame;
+        let canShoot = true; // Flag to prevent shooting multiple times during enemy attack
+        let timeBetweenAttacks = 6800; // Time in milliseconds between enemy attacks
+        let attackDelay = 5000; // Delay in milliseconds between direction audio and attack
+        let lastEnemyScore = 0; // Track the last enemy score
+        let playerPointSound = new Audio('https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/68.mp3'); // Load the new sound
+        let commentaryInterval; // Interval for score commentary
+        let commentaryCounter = 0; // Counter to trigger commentary after intervals
+
+        // Web Speech API setup
+        const synth = window.speechSynthesis;
+        let voices = [];
+
+        function populateVoices() {
+            voices = synth.getVoices();
+        }
+
+        populateVoices();
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoices;
+        }
+
+        function speak(text) {
+            if (synth.speaking) {
+                console.error('speechSynthesis.speaking');
+                return;
+            }
+            const utterThis = new SpeechSynthesisUtterance(text);
+            utterThis.onend = function (event) {
+                console.log('SpeechSynthesisUtterance.onend');
+            }
+            utterThis.onerror = function (event) {
+                console.error('SpeechSynthesisUtterance.onerror');
+            }
+            utterThis.voice = voices.find(voice => voice.name === 'Google UK English Female'); // Use a specific voice
+            utterThis.pitch = 1;
+            utterThis.rate = 1;
+            synth.speak(utterThis);
+        }
+
+        // Preload Audio Files
+        const audioFiles = {
+            mainScreen: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen.mp3',
+            gameStart: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/game%20start%20sound%20effect.mp3',
+            left: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/left.mp3',
+            center: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/centre.mp3',
+            right: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/right.mp3',
+            playerHit: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/achievement-bell.mp3',
+            enemyHit: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/achievement-bell.mp3',
+            win: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_1.mp3',
+            lose: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3',
+            buttonPress: 'https://www.myinstants.com/media/sounds/mouse-click.mp3', // Changed to a click sound
+            // New sound effects
+            playerShoot: 'https://www.myinstants.com/media/sounds/gun.mp3', // Gunshot sound
+            enemyAlert: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3', // Alert sound when enemy attacks
+            draw: 'https://www.myinstants.com/media/sounds/crowd-cheering.mp3' // Sound for a draw or neutral event
+        };
+
+        const preloadedAudio = {};
+
+        // Function to preload audio
+        const preloadAudio = (url) => {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio();
+                audio.src = url;
+                audio.addEventListener('canplaythrough', () => {
+                    preloadedAudio[url] = audio;
+                    resolve(audio);
+                });
+                audio.addEventListener('error', () => {
+                    reject(new Error(Failed to load audio ${url}));
+                });
+            });
+        };
+
+        // Function to play audio
+        const playAudio = (url) => {
+            if (preloadedAudio[url]) {
+                const audio = preloadedAudio[url];
+                audio.currentTime = 0;
+                audio.play();
+            } else {
+                console.warn(Audio not preloaded: ${url});
+            }
+        };
+
+        document.getElementById('start-btn').onclick = startGame;
+
+        function playMainScreenAudio() {
+            mainScreenAudio = new Audio(audioFiles.mainScreen);
+            mainScreenAudio.loop = true;
+            mainScreenAudio.volume = 1;
+            mainScreenAudio.play();
+        }
+
+        function stopMainScreenAudio() {
+            if (mainScreenAudio) {
+                mainScreenAudio.pause();
+                mainScreenAudio.currentTime = 0;
+            }
+        }
+
+        function setVolume(audio, volume) {
+            if (audio && audio.volume !== undefined) {
+                audio.volume = volume;
+            }
+        }
+
+        function startGame() {
+            playerScore = 0;
+            enemyScore = 0;
+            enemyAttacked = false;
+            isPaused = false;
+            canShoot = true; // Allow shooting at the start of the game
+            lastEnemyScore = 0; // Initialize the last enemy score
+            commentaryCounter = 0; // Reset commentary counter
+
+            document.getElementById('player-score').textContent = playerScore;
+            document.getElementById('enemy-score').textContent = enemyScore;
+            document.getElementById('initialScreen').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+
+            if (mainScreenAudio) {
+                volumeBeforeGame = mainScreenAudio.volume;
+                setVolume(mainScreenAudio, volumeBeforeGame * 0.4);
+            }
+
+            stopMainScreenAudio();
+            playAudio(audioFiles.gameStart);
+            speak("Game Start!"); // TTS for game start
+
+            startEnemyAppearance();
+
+            // Start commentary interval
+            if (commentaryInterval) {
+                clearInterval(commentaryInterval);
+            }
+            commentaryInterval = setInterval(giveScoreCommentary, 3000); // Every 3 seconds
+        }
+
+        function giveScoreCommentary() {
+            commentaryCounter++;
+            if (commentaryCounter % 2 === 0) { // Speak after every 2 intervals
+                speak(Player score ${playerScore}, Enemy score ${enemyScore});
+            }
+        }
+
+        function startEnemyAppearance() {
+            if (gameInterval) {
+                clearInterval(gameInterval); // Clear existing interval
+            }
+
+            gameInterval = setInterval(() => {
+                if (!isPaused && !enemyAttacked) {
+                    // Simulate Human-Like Bot Behavior with a slight delay
+                    setTimeout(() => {
+                        if (!isPaused && !enemyAttacked) { // Double-check conditions before attacking
+                            enemyDirection = enemyDirections[Math.floor(Math.random() * 3)]; // Corrected to use 3 directions
+                            enemyAttacked = true;
+                            canShoot = true; // Allow shooting when enemy attacks
+
+                            // Trigger enemy animation
+                            const enemy = document.getElementById('enemy');
+
+                            playDirectionAudio(enemyDirection);
+
+                            playAudio(audioFiles.enemyAlert); // Play alert sound
+
+                            // Delay the attack animation by 5 seconds
+                            enemyTimeout = setTimeout(() => {
+                                if (!isPaused) { // Check if the game is still not paused before awarding the point
+                                    enemy.classList.add(attack-${enemyDirection}); // Add attack animation
+                                    enemyTimeout = setTimeout(() => {
+                                        if (!isPaused) { // Check if the game is still not paused before awarding the point
+                                            enemyScore++;
+                                            document.getElementById('enemy-score').textContent = enemyScore;
+                                            playAudio(audioFiles.enemyHit);
+                                            speak("Enemy scores!");
+                                            checkWinner();
+                                        }
+                                        enemyAttacked = false;
+                                        canShoot = false; // Prevent shooting after enemy scores or timeout
+
+                                        // Remove enemy animation class
+                                        enemy.classList.remove(attack-${enemyDirection});
+                                    }, 1000);
+                                }
+                            }, attackDelay);
+                        }
+                    }, Math.random() * 1500);
+                }
+            }, timeBetweenAttacks);
+        }
+
+        function playDirectionAudio(direction) {
+            let audioUrl;
+            switch (direction) {
+                case 'left':
+                    audioUrl = audioFiles.left;
+                    break;
+                case 'center':
+                    audioUrl = audioFiles.center;
+                    break;
+                case 'right':
+                    audioUrl = audioFiles.right;
+                    break;
+            }
+
+            if (audioUrl) {
+                playAudio(audioUrl);
+            }
+        }
+
+        document.querySelectorAll('.shoot-btn').forEach(button => {
+            button.onclick = () => {
+                if (isPaused || !canShoot) return; // Prevent shooting if game is paused or player cannot shoot
+                playAudio(audioFiles.buttonPress);
+                shoot(button.dataset.direction);
+                canShoot = false; // Prevent shooting again until the next enemy attack
+            };
+        });
+
+        function shoot(direction) {
+            if (enemyAttacked) { // Only process the shot if the enemy has attacked
+                clearTimeout(enemyTimeout);
+                playAudio(audioFiles.playerShoot); // Play player's shooting sound
+
+                // Trigger player animation
+                const player = document.getElementById('player');
+                player.classList.add(shoot-${direction});
+
+                // Store current enemy score before any potential increment
+                let currentEnemyScore = enemyScore;
+
+                if (enemyDirection === direction) {
+                    playerScore++;
+                    document.getElementById('player-score').textContent = playerScore;
+                    playAudio(audioFiles.playerHit);
+
+                    // Check if enemy score didn't increase and play the sound
+                    if (currentEnemyScore === lastEnemyScore) {
+                        playerPointSound.play();
+                    }
+                } else {
+                    // Now the bot also has a chance to miss
+                    if (Math.random() > 0.1) { // 80% chance the bot scores if player misses
+                        enemyScore++;
+                        document.getElementById('enemy-score').textContent = enemyScore;
+                        playAudio(audioFiles.enemyHit);
+                        speak("Enemy scores!");
+                    }
+                }
+
+                checkWinner();
+                enemyAttacked = false;
+
+                // Remove player animation class after a delay
+                setTimeout(() => {
+                    player.classList.remove(shoot-${direction});
+                }, 300);
+
+                // Update last enemy score
+                lastEnemyScore = currentEnemyScore;
+            }
+        }
+
+        function checkWinner() {
+            if (playerScore >= 10) {
+                endGame("You Win!");
+                playAudio(audioFiles.win);
+                speak("You Win!");
+            } else if (enemyScore >= 10) {
+                endGame("Enemy Wins!");
+                playAudio(audioFiles.lose);
+                speak("Enemy Wins!");
+            }
+        }
+
+        function endGame(message) {
+            clearInterval(gameInterval);
+            clearInterval(commentaryInterval); // Stop the commentary
+            document.getElementById('endGameMessage').textContent = message;
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('endGameScreen').style.display = 'block';
+        }
+
+        function resetGame() {
+            clearInterval(gameInterval);
+            clearInterval(commentaryInterval); // Stop the commentary
+
+            if (mainScreenAudio) {
+                setVolume(mainScreenAudio, volumeBeforeGame);
+            }
+
+            document.getElementById('endGameScreen').style.display = 'none';
+            document.getElementById('initialScreen').style.display = 'block';
+
+            playMainScreenAudio();
+            playerScore = 0;
+            enemyScore = 0;
+            document.getElementById('player-score').textContent = playerScore;
+            document.getElementById('enemy-score').textContent = enemyScore;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+
+            document.getElementById('pause-btn').textContent = isPaused ? "Resume Game" : "Pause Game";
+            speak(isPaused ? "Game Paused" : "Game Resumed"); // Announce pause status
+
+            if (!isPaused) {
+                startEnemyAppearance();
+                commentaryInterval = setInterval(giveScoreCommentary, 3000); // Restart commentary
+            } else {
+                clearInterval(gameInterval);
+                clearTimeout(enemyTimeout);
+                clearInterval(commentaryInterval); // Stop the commentary
+                stopAllAudio();
+            }
+        }
+
+        function stopAllAudio() {
+            for (const key in preloadedAudio) {
+                if (preloadedAudio.hasOwnProperty(key)) {
+                    const audio = preloadedAudio[key];
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            }
+        }
+        // Preload all audio files
+        Promise.all(Object.values(audioFiles).map(preloadAudio))
+            .then(() => {
+                console.log('All audio preloaded');
+                document.getElementById('loading-overlay').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Audio preload failed:', error);
+                document.getElementById('loading-overlay').style.display = 'none';
+                alert('Welcome.');
+            });
+            playerPointSound.load()
