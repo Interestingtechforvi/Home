@@ -1,0 +1,504 @@
+<!DOCTYPE HTML>
+<html lang="en-us">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Blind Assist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            background: #042464;
+            color: #fff;
+        }
+
+        button {
+            background: none;
+            color: #fff;
+            border: none;
+            font-size: 22px;
+            padding: 8px 8px;
+        }
+
+        button:hover {
+            background: #035346;
+            color: #fff;
+        }
+
+        .header p {
+            font-size: 0;
+        }
+
+        .header {
+            height: 6vh;
+            background: #010201;
+            padding: 10px 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-write {
+            /* margin-left: 55vw;  Consider removing this */
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #nav b {
+            position: fixed;
+            top: 4vh;
+            left: 20vw;
+        }
+
+        .header-write.hidden {
+            display: none;
+        }
+
+        .main.hidden {
+            display: none;
+        }
+
+        #nav.hidden {
+            display: none;
+        }
+
+        #nav {
+            height: 100vh;
+            background: #010201;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        #navcon {
+            height: 85vh;
+            width: 75vw;
+            background: #042464;
+            padding: 0px 10px;
+        }
+
+        ul li {
+            list-style: none;
+            padding: 10px 10px;
+            margin-top: 10px;
+            width: 65vw;
+        }
+
+        li i {
+            width: 10vw;
+        }
+
+        dialog {
+            background: #030204;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+        }
+
+        dialog button p {
+            font-size: 0px;
+        }
+
+        dialog b {
+            color: #fff;
+        }
+
+        .dialogcontent p {
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .dialogcontent ul li {
+            color: #fff;
+        }
+
+        .dialogcontent {
+            margin-top: 15px;
+            padding: 10px 10px;
+        }
+
+        dialog button {
+            float: right;
+            font-size: 22px;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 190, 10, 1);
+        }
+
+        #alertbox {
+            background: #010201;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            padding: 10px 0px;
+            width: 100vw;
+        }
+
+        #firstnameprompt {
+            text-align: center;
+            color: #fff;
+            height: 40vh;
+            width: 75vw;
+        }
+
+        #firstnameprompt form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #firstnameprompt b {
+            font-size: 20px;
+        }
+
+        #firstnameprompt p {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        input {
+            background: #010301;
+            color: #fff;
+            margin-top: 20px;
+            padding: 10px 10px;
+            font-size: 18px;
+        }
+
+        form button {
+            padding: 10px 10px;
+            width: 75vw;
+            margin-top: 15px;
+            font-size: 15px;
+            background: #648986;
+            border: none;
+            border-radius: 5px;
+        }
+
+        form label {
+            margin-top: 15px;
+        }
+
+        #settings p {
+            margin-top: 10px;
+        }
+
+        .main {
+            padding: 15px 20px;
+        }
+
+        .main img {
+            display: none;
+        }
+
+        .main-top {
+            display: flex;
+            align-items: center;
+        }
+
+        .main-top-write {
+            font-size: 32px;
+        }
+
+        .main-top-write {
+            margin-left: 20px;
+        }
+
+        .clock {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .clock #time {
+            font-size: 50px;
+            background: linear-gradient(green, red, white, blue);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .clock #savedName {
+            margin-top: 10px;
+            font-size: 22px;
+        }
+
+        #tip-container {
+            background: #020304;
+            padding: 20px;
+            text-align: center;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+
+        .message-content p {
+            color: #fff;
+        }
+
+        .message-content {
+            margin-top: 30px;
+        }
+
+        .message-content button {
+            background: #3caf20;
+            margin-top: 10px;
+        }
+
+        .tobtn {
+            position: fixed;
+            bottom: 4vh;
+            text-align: center;
+        }
+
+        .tobtn button {
+            width: 88vw;
+            background: #2caf10;
+        }
+    </style>
+</head>
+
+<body onload="loadedbody()">
+    <!--<dialog id="messageBox">
+        <div class="message-top">
+            <b aria-description="heading"> important message </b>
+            <button onclick="messageClose()" class="bi-x">
+                <p> close </p>
+            </button>
+        </div>
+        <div class="message-content">
+            <p> hello digital india for blind users, a good message for you our whatsApp group is launched </p>
+            <button onclick="location.href=''"> join group! </button>
+        </div>
+    </dialog>-->
+    <div class="header">
+        <div class="header-left">
+            <button class="bi-list" id="navBtn" onclick="navopen()">
+                <p id="talkbackopen">open navigation drawer</p>
+            </button>
+        </div>
+    </div>
+    <div id="nav" class="hidden">
+        <b aria-description="heading">navigation drawer</b>
+        <div class="navContent">
+            <div class="header-write">
+                <!-- move buttons inside here -->
+                <button class="bi-bell" onclick="notificationAction()" aria-label="Notifications">
+                    <p>notifications</p>
+                </button>
+                <button class="bi-share" onclick="shareAction()" aria-label="Share">
+                    <p>share</p>
+                </button>
+            </div>
+            <ul id="navcon">
+
+                <li onclick="location.href='go:Join'">join our WhatsApp groups</li>
+                <li onclick="location.href='go:Contact'">Contact us</li>
+                <li onclick="location.href='go:social'">our social media platforms</li>
+                <li onclick="opensettings()">Settings</li>
+            </ul>
+        </div>
+    </div>
+    <dialog id="settings">
+        <div class="dialogtop">
+            <b aria-description="heading">settings</b>
+            <button onclick="closesettings()" class="bi-x">
+                <p>close</p>
+            </button>
+        </div>
+        <div class="dialogcontent">
+            <p aria-description="heading">general</p>
+            <ul>
+                <li onclick="changeName()">Change your Name</li>
+            </ul>
+            <p aria-description="heading">other</p>
+            <ul>
+                <!--<li onclick="location.href='https://uniquetechforblind.com'"> visit our website </li>-->
+                <li onclick="location.href='go:about'">about us</li>
+                <!--<li onclick="location.href='go:credits'"> Credits / support </li>-->
+                <li onclick="location.href='go:test'">admin</li>
+                <li onclick="location.href='https://play.google.com/store/apps/details?id=btc.tools'">rate us</li>
+                <li onclick="location.href='https://www.e-droid.net/privacy.php?ida=2675045&idl=en'">privacy policy</li>
+            </ul>
+            <p>Blind Assist Version 1.9. Updated on Nov 17, 2023. Downloads 1,000+ downloads</p>
+        </div>
+    </dialog>
+    <dialog id="firstnameprompt">
+        <b aria-description="heading">please enter your name</b>
+        <p>this name will be show on home page</p>
+        <form>
+            <p>this step is required</p>
+            <label for="name">enter your name:</label>
+            <input type="text" id="name" placeholder="enter your name:" required>
+            <button type="button" onclick="save()">save</button>
+        </form>
+    </dialog>
+    <div class="main">
+        <div class="main-top">
+            <div class="main-top-left">
+            </div>
+            <div class="main-top-write">
+                <b aria-description="heading">welcome to Blind Assist</b>
+            </div>
+        </div>
+        <div class="clock">
+            <p id="time"></p>
+            <marquee direction="left" behavior="scroll" scrollamount="5" id="savedName" loop></marquee>
+        </div>
+        <div id="tip-container">
+        </div>
+        <div class="tobtn">
+            <button onclick="location.href='go:features'">go to features</button>
+        </div>
+    </div>
+    <p role="alert" id="alertbox" style="display: none"></p>
+    <script>
+        var alertbox = document.getElementById("alertbox");
+
+        function message(content, timer = 3000) {
+            alertbox.innerHTML = content;
+            alertbox.style.display = "block";
+            setTimeout(function () {
+                alertbox.innerHTML = "";
+                alertbox.style.display = "none";
+            }, timer);
+        }
+
+        function navopen() {
+            var nav = document.getElementById("nav");
+            var isHidden = nav.classList.toggle("hidden");
+            // var headerWrite = document.querySelector(".header-write"); //dont need this
+            // headerWrite.classList.toggle("hidden", !isHidden);       //dont need this
+            var mainDiv = document.querySelector(".main");
+            mainDiv.classList.toggle("hidden", !isHidden);
+
+            var btn = document.getElementById("navBtn");
+            btn.classList.toggle("bi-x", !isHidden);
+
+            var talkbackOpen = document.getElementById("talkbackopen");
+            talkbackOpen.textContent = isHidden ? "open navigation drawer" : "close navigation drawer";
+
+            var messageText = isHidden ? "Navigation Drawer Closed" : "Navigation Drawer Opened";
+            message(messageText);
+        }
+
+        function opensettings() {
+            document.getElementById("settings").showModal();
+            message("settings opened");
+        }
+
+        function closesettings() {
+            document.getElementById("settings").close();
+            message("settings closed");
+        }
+
+        function loadedbody() {
+            var savedName = localStorage.getItem("user_name");
+            var savedNameElement = document.getElementById("savedName");
+            const time = new Date().getHours();
+            let greeting;
+            let gmessage;
+            if (time < 12) {
+                greeting = "Good morning";
+                gmessage = "I hope your day goes well.";
+            } else if (time >= 12 && time < 16) {
+                greeting = "Good afternoon";
+                gmessage = "How are you?";
+            } else if (time >= 16 && time < 23) {
+                greeting = "Good evening";
+                gmessage = "I hope your day was pleasantful.";
+            } else {
+                greeting = "Good night";
+                gmessage = "It's time to sleep.";
+            }
+
+            if (savedName) {
+                savedNameElement.innerHTML = greeting + " " + savedName + "! " + gmessage;
+                message("welcome " + savedName + "!");
+            } else {
+                document.getElementById("firstnameprompt").showModal();
+            }
+        };
+
+        function save() {
+            var name = document.getElementById("name").value;
+            var savedNameElement = document.getElementById("savedName");
+            if (name) {
+                localStorage.setItem("user_name", name);
+                savedNameElement.innerHTML = "hello " + name;
+                document.getElementById("firstnameprompt").close();
+            } else {
+                message("Please enter your name");
+            }
+        }
+
+        function changeName() {
+            document.getElementById("firstnameprompt").showModal();
+            message("Change your name");
+        }
+
+        function updateClock() {
+            var now = new Date();
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            var timeString = hours + ':' + (minutes < 10 ? '0' : '') + minutes + ' ' + ampm;
+            document.getElementById('time').innerHTML = timeString;
+            setTimeout(updateClock, 1000);
+        }
+        updateClock();
+
+        function getTip() {
+            fetch('https://api.adviceslip.com/advice')
+                .then(response => response.json())
+                .then(data => {
+                    const tip = data.slip.advice;
+                    displayTip(tip);
+                })
+                .catch(error => console.error('Error fetching advice:', error));
+        }
+
+        function displayTip(tip) {
+            const tipContainer = document.getElementById('tip-container');
+            tipContainer.innerHTML = <p>${tip}</p>;
+        }
+
+        // Initial tip fetch and display on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            getTip();
+        });
+        window.addEventListener("load", function () {
+            //document.getElementById("messageBox").showModal();
+        });
+
+        function messageClose() {
+            //document.getElementById("messageBox").close();
+        }
+
+        function shareAction() {
+            message("Share action triggered");
+            // You can add the actual share functionality here
+        }
+
+        function notificationAction() {
+            message("Notification action triggered");
+            // You can add the actual notification functionality here
+        }
+    </script>
+</body>
+
+</html>
