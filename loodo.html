@@ -1,0 +1,586 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Audio snakes and ladders game, साँप सीड़ी.</title>
+  <style>
+  body {
+  font-family: Arial,
+  sans-serif;
+  text-align: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+  /* Light background color */
+  color: #333;
+  /* Dark text for readability */
+  }
+ 
+
+  button {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 1.1em;
+  cursor: pointer;
+  /* Indicate it's clickable */
+  background-color: #4CAF50;
+  /* Green button color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  }
+ 
+
+  button:hover {
+  background-color: #367C39;
+  /* Darker green on hover */
+  }
+ 
+
+  #gameStatus,
+  #botStatus {
+  margin-top: 20px;
+  font-size: 1.2em;
+  font-weight: bold;
+  }
+ 
+
+  #instructions {
+  margin-top: 20px;
+  font-size: 1em;
+  }
+ 
+
+  #dice {
+  width: 50px;
+  height: 50px;
+  background-color: white;
+  /* White background */
+  border: 2px solid #555;
+  /* Darker border */
+  margin: 20px auto;
+  font-size: 2em;
+  /* Larger text size */
+  line-height: 50px;
+  /* Vertically center the text */
+  display: inline-block;
+  }
+ 
+
+  /* Style for the main menu */
+  #mainMenu {
+  display: block;
+  /* Initially show only the main menu */
+  }
+ 
+
+  #gameArea {
+  display: none;
+  /* Initially hide the game area */
+  }
+ 
+
+  /* Styles for win/lose messages */
+  .win-message,
+  .lose-message {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 20px;
+  }
+  </style>
+ </head>
+ 
+
+ <body>
+  <h1>Enhanced Accessible Ludo Game</h1>
+ 
+
+  <!-- Main Menu -->
+  <div id="mainMenu">
+  <div id="instructions">
+  <p>Instructions:</p>
+  <p>1. Swipe up to start the game</p>
+  <p>2. Press 'R' to roll the dice and move your piece on Windows.</p>
+  <p>3. Swipe right to roll the dice and move your piece on Android.</p>
+  <p>4. Swipe left to reset the game</p>
+  <p>5. The first player to reach position 100 wins the game.</p>
+  <p>6. The game is turn-based, so wait for your turn after rolling the dice.</p>
+  </div>
+  <button onclick="startGame()">Start Game</button>
+  </div>
+ 
+
+  <!-- Game Area (Initially Hidden) -->
+  <div id="gameArea" style="display:none;">
+  <div id="gameStatus" aria-live="off">Game ready. Your position: 1</div>
+  <div id="botStatus" aria-live="off">Bot's position: 1</div>
+  <button onclick="rollDice()" id="rollDiceButton">Roll Dice</button>
+  <div id="dice"></div>
+  <button onclick="resetGame()">Reset Game</button>
+  </div>
+ 
+
+  <!-- Win/Lose Messages (Initially Hidden) -->
+  <div id="winMessage" class="win-message" style="display:none;">Congratulations, you have won this game!</div>
+  <div id="loseMessage" class="lose-message" style="display:none;">Oh my god, you have lost this game and bot
+  wins. No issue, let's try again.</div>
+ 
+
+  <!-- Audio Elements -->
+  <audio id="backgroundMusic" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.wav"
+  preload="auto" loop></audio>
+  <audio id="diceSound"
+  src="https://www.soundsnap.com/dice_on_plastic_throw_and_roll_standard_16_sixteen_dice_v2_wav"
+  preload="auto"></audio>
+  <audio id="moveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+  <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/winsound.mp3"
+  preload="auto"></audio>
+  <audio id="botMoveSound"
+  src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+  <audio id="botWinSound"
+  src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3" preload="auto"></audio>
+  <audio id="turnSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3"></audio>
+  <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/preset.mp3"
+  loop preload="auto"></audio>
+  <audio id="ladderSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3"></audio>
+  <audio id="snakeBiteSound"
+  src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3"></audio>
+ 
+
+  <!-- Player Dice Sounds -->
+  <audio id="playerDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound1.mp3"
+  preload="auto"></audio>
+  <audio id="playerDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound2.mp3"
+  preload="auto"></audio>
+  <audio id="playerDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3"></audio>
+  <audio id="playerDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3"></audio>
+  <audio id="playerDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3"></audio>
+  <audio id="playerDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3"></audio>
+ 
+
+  <!-- Bot Dice Sounds -->
+  <audio id="botDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound7.mp3"
+  preload="auto"></audio>
+  <audio id="botDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound8.mp3"
+  preload="auto"></audio>
+  <audio id="botDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3"></audio>
+  <audio id="botDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3"></audio>
+  <audio id="botDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3"></audio>
+  <audio id="botDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3"></audio>
+ 
+
+  <!-- Hindi Audio Clips -->
+  <audio id="ladderHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/ladder_hindi.mp3"
+  preload="auto"></audio>
+  <audio id="snakeBiteHindi"
+  src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3"></audio>
+  <audio id="winHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3"></audio>
+  <audio id="botWinHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3"></audio>
+ 
+
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script>
+  let position = 1;
+  let botPosition = 1;
+  let isPlayerTurn = true;
+  let gameOver = false;
+  let backgroundMusic;
+  let ttsQueue = [];
+  let isTtsSpeaking = false;
+  let resetSound; // Declare resetSound
+  let rollDiceButton = document.getElementById("rollDiceButton");
+  let canRollDice = false; // Flag to control dice rolling
+  let botMoveTimeout; // Variable to hold the bot's move timeout
+  let gameStarted = false; // Flag to check if the game has started
+ 
+
+  // Snakes and Ladders positions
+  const snakesAndLadders = {
+  1: 38,
+  4: 14,
+  9: 31,
+  21: 42,
+  28: 84,
+  36: 44,
+  51: 67,
+  71: 91,
+  80: 100, // Adding a ladder at 80 to reach 100 directly
+  16: 6,
+  46: 25,
+  49: 11,
+  62: 19,
+  64: 60,
+  74: 53,
+  89: 68,
+  92: 88,
+  95: 75,
+  99: 80
+  };
+ 
+
+  // Function to play a specific dice sound
+  function playDiceSound(dice, isPlayer) {
+  const soundId = isPlayer ? `playerDice${dice}` : `botDice${dice}`;
+  const sound = document.getElementById(soundId);
+  sound.play();
+  }
+ 
+
+  // Function to speak using the TTS API with queue
+  function speakText(text, callback) {
+  ttsQueue.push({
+  text: text,
+  callback: callback
+  });
+  if (!isTtsSpeaking) {
+  processTtsQueue();
+  }
+  }
+ 
+
+  function processTtsQueue() {
+  if (ttsQueue.length === 0) {
+  isTtsSpeaking = false;
+  return;
+  }
+ 
+
+  isTtsSpeaking = true;
+  const item = ttsQueue.shift();
+  const text = item.text;
+  const callback = item.callback;
+  const ttsApiUrl =
+  `https://advanced-tts.darkhacker7301.workers.dev/?message=${encodeURIComponent(text)}&voice=Hemant`;
+  const audio = new Audio(ttsApiUrl);
+  audio.play();
+ 
+
+  audio.onended = () => {
+  setTimeout(() => {
+  if (callback) callback();
+  processTtsQueue();
+  }, 30); // Reduced to 0.03 seconds gap
+  };
+  }
+ 
+
+  function startGame() {
+  // Hide the main menu
+  document.getElementById("mainMenu").style.display = "none";
+  // Show the game area
+  document.getElementById("gameArea").style.display = "block";
+  // Play background music
+  backgroundMusic = document.getElementById("backgroundMusic");
+  backgroundMusic.loop = true; // Ensure loop is enabled
+  backgroundMusic.play();
+  // Start reset sound
+  resetSound = document.getElementById("resetSound");
+  resetSound.loop = true;
+  resetSound.play();
+  // Reset the game if it was previously played
+  resetGame();
+  // Delay before enabling the roll dice button for the player at the start of the game
+  setTimeout(() => {
+  speakText("हे उपयोगकर्ता, गेम शुरू हो गया है। अब डाइस को रोल करें!", () => {
+  enableRollDice();
+  canRollDice = true; // Allow dice rolling after 7 seconds
+  });
+  }, 7000); // Delay of 7 seconds
+  disableRollDice(); // Initially disable the roll dice button
+  canRollDice = false; // Prevent rolling before the game starts
+  gameStarted = true; // Set game started flag to true
+  }
+ 
+
+  function rollDice() {
+  if (gameOver || !isPlayerTurn || !canRollDice) return;
+ 
+
+  disableRollDice(); // Disable the button immediately after clicking
+  canRollDice = false; // Prevent rolling again until the bot moves
+ 
+
+  const dice = Math.floor(Math.random() * 6) + 1;
+  playDiceSound(dice, true); // Play player's dice sound
+  let newPosition = position + dice;
+ 
+
+  // Check if the new position exceeds 100
+  if (newPosition > 100) {
+  newPosition = 100 - (newPosition - 100); // Move back
+  const statusText = `You threw ${dice}. You would have overshot, so you move back to ${newPosition}.`;
+  document.getElementById("gameStatus").textContent = statusText;
+  speakText(`आपने ${dice} फेंका। आप आगे निकल जाते, इसलिए आप वापस ${newPosition} पर चले जाते हैं।`);
+  } else {
+  const statusText = `You threw ${dice}.`;
+  document.getElementById("gameStatus").textContent = statusText;
+  speakText(`आपने ${dice} फेंका.`);
+  }
+ 
+
+  position = newPosition; // Update position after checking for overshooting
+ 
+
+  // Check for snakes and ladders
+  if (snakesAndLadders[position]) {
+  const oldPosition = position;
+  position = snakesAndLadders[position];
+  if (position > oldPosition) {
+  const statusText = `Guess what? You climbed a ladder and now at ${position}.`;
+  document.getElementById("gameStatus").textContent += ` ${statusText}`;
+  speakText(`अंदाजा लगाओ क्या? आप एक सीढ़ी चढ़ गए और अब ${position} पर हैं।`);
+  document.getElementById("ladderSound").play();
+  document.getElementById("ladderHindi").play(); // Play Hindi ladder sound
+  } else {
+  const statusText = `Oops! A snake bit you, slidding you to ${position}.`;
+  document.getElementById("gameStatus").textContent += ` ${statusText}`;
+  speakText(`ऊप्स! एक सांप ने आपको काट लिया, जिससे आप फिसलकर ${position} पर आ गए।`);
+  document.getElementById("snakeBiteSound").play();
+  document.getElementById("snakeBiteHindi").play(); // Play Hindi snake bite sound
+  }
+  }
+ 
+
+  document.getElementById("dice").textContent = dice;
+ 
+
+  if (position === 100) {
+  // Player wins
+  handleWin();
+  } else {
+  const statusText = `Your spot is ${position}`;
+  document.getElementById("gameStatus").textContent += ` ${statusText}`;
+  speakText(`आपका स्थान ${position} है`);
+  document.getElementById("moveSound").play();
+  }
+ 
+
+  isPlayerTurn = false;
+  botMoveTimeout = setTimeout(botTurn, 3500); // Bot rolls after 3.5 seconds
+  }
+ 
+
+  function botTurn() {
+  if (gameOver) return;
+ 
+
+  setTimeout(() => { // Delay before the bot rolls
+  const botDice = Math.floor(Math.random() * 6) + 1;
+  playDiceSound(botDice, false); // Play bot's dice sound
+  let newBotPosition = botPosition + botDice;
+ 
+
+  // Check if the new position exceeds 100
+  if (newBotPosition > 100) {
+  newBotPosition = 100 - (newBotPosition - 100); // Move back
+  const statusText = `The Bot threw ${botDice}. Bot would have overshot, so it moves back to ${newBotPosition}.`;
+  document.getElementById("botStatus").textContent = statusText;
+  speakText(`बॉट ने ${botDice} फेंका। बॉट आगे निकल जाता, इसलिए वह वापस ${newBotPosition} पर चला जाता है।`);
+  } else {
+  const statusText = `Bot threw ${botDice}.`;
+  document.getElementById("botStatus").textContent = statusText;
+  speakText(`बॉट ने ${botDice} फेंका.`);
+  }
+ 
+
+  const oldBotPosition = botPosition;
+  botPosition = newBotPosition; // Update botPosition after checking for overshooting
+ 
+
+  // Check for snakes and ladders
+  if (snakesAndLadders[botPosition]) {
+  if (botPosition > oldBotPosition) {
+  // Bot climbed a ladder
+  const statusText = `Bot climbed a ladder, reaching ${botPosition}.`;
+  document.getElementById("botStatus").textContent += ` ${statusText}`;
+  speakText(`बॉट एक सीढ़ी चढ़ गया, ${botPosition} तक पहुंच गया।`);
+  document.getElementById("ladderSound").play();
+  } else {
+  // Bot got bitten by a snake
+  const statusText = `Bad luck! The bot got bitten by a snake and went down to ${botPosition}.`;
+  document.getElementById("botStatus").textContent += ` ${statusText}`;
+  speakText(`बुरी किस्मत! बॉट को एक सांप ने काट लिया और वह फिसलकर ${botPosition} पर चला गया।`);
+  document.getElementById("snakeBiteSound").play();
+  }
+  }
+ 
+
+  document.getElementById("botMoveSound").play();
+  document.getElementById("dice").textContent = botDice;
+ 
+
+  if (botPosition === 100) {
+  // Bot wins
+  handleLose();
+  } else {
+  const statusText = `Bot's location: ${botPosition}`;
+  document.getElementById("botStatus").textContent += ` ${statusText}`;
+  speakText(`बॉट का स्थान: ${botPosition}`);
+  }
+ 
+
+  isPlayerTurn = true;
+  document.getElementById("turnSound").play();
+  }, 2000); // Delay of 2 seconds for bot's move
+ 
+
+  // Enable player to roll dice after 9 seconds
+  setTimeout(() => {
+  const statusText = `It's your turn now! Go ahead and roll.`;
+  document.getElementById("gameStatus").textContent = statusText;
+  speakText(`अब आपकी बारी है! आगे बढ़ें और डाइस को रोल करें।`, () => {
+  enableRollDice(); // Enable the button after TTS finishes
+  canRollDice = true; // Allow player to roll the dice
+  });
+  }, 9000); // Player can roll after 9 seconds
+  }
+ 
+
+  function handleWin() {
+  gameOver = true;
+  clearTimeout(botMoveTimeout); // Clear any pending bot moves
+  canRollDice = false; // Prevent further dice rolls
+  const winText = `You threw a dice. You win! You're at ${position}`;
+  document.getElementById("gameStatus").textContent = winText;
+  speakText(`मुबारक हो।`);
+  document.getElementById("winSound").play();
+  document.getElementById("winHindi").play(); // Play Hindi win sound
+  // Stop reset sound
+  resetSound.pause();
+  resetSound.currentTime = 0;
+  // Hide game area
+  document.getElementById("gameArea").style.display = "none";
+  // Show win message
+  document.getElementById("winMessage").style.display = "block";
+  }
+ 
+
+  function handleLose() {
+  gameOver = true;
+  clearTimeout(botMoveTimeout); // Clear any pending bot moves
+  canRollDice = false; // Prevent further dice rolls
+  const loseText = `Bot threw a dice. Bot wins! It's at ${botPosition}`;
+  document.getElementById("botStatus").textContent = loseText;
+  // Stop reset sound
+  resetSound.pause();
+  resetSound.currentTime = 0;
+ 
+
+  // Speak the lose message in Hindi
+  speakText("आप हार गये और बौट जीत गया। कोई बात नहीं। फिर से ट्राइ करें।", () => {
+  document.getElementById("botWinSound").play(); // Play the bot win sound
+  });
+ 
+
+  // Hide game area
+  document.getElementById("gameArea").style.display = "none";
+  // Show lose message
+  document.getElementById("loseMessage").style.display = "block";
+  }
+ 
+
+  function resetGame() {
+  // Reset the audio to the beginning
+  resetSound.currentTime = 0;
+ 
+
+  position = 1;
+  botPosition = 1;
+  isPlayerTurn = true;
+  gameOver = false;
+  canRollDice = false; // Prevent rolling immediately after reset
+  clearTimeout(botMoveTimeout); // Clear any pending bot moves
+ 
+
+  // Reset display elements
+  document.getElementById("gameStatus").textContent = "Game ready. You are at 1";
+  document.getElementById("botStatus").textContent = "Bot's location: 1";
+  document.getElementById("dice").textContent = "";
+  speakText("गेम रीसेट हो गया है। अब आप एक स्थान पर हैं।", () => {
+  // Delay before enabling the roll dice button for the player after reset
+  setTimeout(() => {
+  enableRollDice();
+  canRollDice = true; // Allow dice rolling after 7 seconds
+  }, 7000); // Delay of 7 seconds
+  disableRollDice(); // Initially disable the roll dice button
+  });
+ 
+
+  // Hide win/lose messages and show game area
+  document.getElementById("winMessage").style.display = "none";
+  document.getElementById("loseMessage").style.display = "none";
+  document.getElementById("gameArea").style.display = "block";
+  }
+ 
+
+  function enableRollDice() {
+  rollDiceButton.disabled = false;
+  }
+ 
+
+  function disableRollDice() {
+  rollDiceButton.disabled = true;
+  }
+ 
+
+  // Load all sounds at the start
+  window.onload = function() {
+  const sounds = document.querySelectorAll('audio');
+  sounds.forEach(sound => {
+  sound.load();
+  });
+ 
+
+  // Set the volume of resetSound
+  const resetSound = document.getElementById("resetSound");
+  resetSound.volume = 0.20; // 20% volume
+ 
+
+  // Disable dice rolling until the game starts
+  disableRollDice();
+  canRollDice = false;
+  };
+ 
+
+  document.addEventListener('keydown', (event) => {
+  if ((event.key === 'r' || event.key === 'R') && canRollDice) {
+  rollDice();
+  }
+  });
+ 
+
+  // Touch gestures
+  const hammer = new Hammer(document.body);
+  hammer.get('swipe').set({
+  direction: Hammer.DIRECTION_HORIZONTAL
+  }); // Allow horizontal swipes only
+ 
+
+  // Swipe up to start the game (only if the game hasn't started)
+  hammer.add(new Hammer.Swipe({
+  event: 'swipeup',
+  direction: Hammer.DIRECTION_UP
+  }));
+  hammer.on('swipeup', (event) => {
+  if (!gameStarted) {
+  startGame();
+  }
+  });
+ 
+
+  hammer.on('swiperight', (event) => {
+  if (canRollDice && gameStarted) {
+  rollDice();
+  }
+  });
+ 
+
+  hammer.on('swipeleft', (event) => {
+  if (gameStarted) {
+  resetGame();
+  }
+  });
+  </script>
+ </body>
+ 
+
+ </html>
