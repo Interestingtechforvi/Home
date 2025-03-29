@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>blind assist loodo, साँप सीड़ी</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #367C39;
+        }
+
+        #gameStatus,
+        #botStatus {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        #instructions {
+            margin-top: 20px;
+            font-size: 1em;
+        }
+
+        #dice {
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border: 2px solid #555;
+            margin: 20px auto;
+            font-size: 2em;
+            line-height: 50px;
+            display: inline-block;
+        }
+
+        #mainMenu {
+            display: block;
+        }
+
+        #gameArea {
+            display: none;
+        }
+
+        .win-message,
+        .lose-message {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* Added styles for the language selection and name input */
+        #languageSelection {
+            margin-bottom: 10px;
+        }
+
+        #nameInputArea {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Accessible loodo game with Snakes and Ladders </h1>
+
+    <!-- Main Menu -->
+    <div id="mainMenu">
+        <div id="languageSelection">
+            <label for="language">Select Language:</label>
+            <select id="language" onchange="setLanguage()">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+            </select>
+        </div>
+
+        <div id="nameInputArea">
+            <label for="playerName">Player Name:</label>
+            <input type="text" id="playerName" placeholder="Enter your name" />
+            <button onclick="savePlayerName()">Save Name</button>
+            <button onclick="editPlayerName()" id="editNameButton" style="display:none;">Edit Name</button>
+        </div>
+
+        <div id="instructions">
+            <p>How to Play:</p>
+            <p>1. Swipe up to start the game.</p>
+            <p>2. Press 'R' to roll the dice and move your piece on Windows.</p>
+            <p>3. Swipe right to roll the dice and move your piece on Android.</p>
+            <p>4. Swipe left to reset the game.</p>
+            <p>5. The first player to reach position 100 triumphs in the game. and that player will be the winner of the game.
+            </p>
+            <p>6. The game is turn-based, so hold on for your turn after rolling the dice.</p>
+        </div>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Game Area -->
+    <div id="gameArea" style="display:none;">
+        <div id="gameStatus" aria-live="polite">Game ready. Your position: 1</div>
+        <div id="botStatus" aria-live="polite">Bot's position: 1</div>
+        <button onclick="rollDice()" id="rollDiceButton">Roll Dice</button>
+        <div id="dice"></div>
+        <button onclick="resetGame()">Reset Game</button>
+        <button onclick="showGameInfo()">Game Information</button>
+        <!-- New Button -->
+    </div>
+
+    <!-- Win/Lose Messages -->
+    <div id="winMessage" class="win-message" style="display:none;">Yay, you’ve triumphed in this game!</div>
+    <div id="loseMessage" class="lose-message" style="display:none;">Gosh, you didn’t quite make it this time, but the bot did! No sweat, let's give it
+        another shot.</div>
+
+    <!-- Game Information Popup -->
+    <div id="gameInfo"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); color:white; z-index:1000;">
+        <div
+            style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); padding:20px; background-color:#333; border-radius:10px;">
+            <h2>Game Information</h2>
+            <p>Snakes and Ladders positions:</p>
+            <pre id="snakesLaddersInfo"></pre>
+            <button onclick="hideGameInfo()">Close</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="backgroundMusic" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.wav"
+        preload="auto" loop></audio>
+    <audio id="diceSound" src="https://www.soundsnap.com/dice_on_plastic_throw_and_roll_standard_16_sixteen_dice_v2_wav"
+        preload="auto"></audio>
+    <audio id="moveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+    <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/winsound.mp3"
+        preload="auto"></audio>
+    <audio id="botMoveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+    <audio id="botWinSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3"
+        preload="auto"></audio>
+    <audio id="turnSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3"></audio>
+    <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/preset.mp3" loop
+        preload="auto"></audio>
+    <audio id="ladderSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3"></audio>
+    <audio id="snakeBiteSound"
+        src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3"></audio>
+
+    <!-- Player Dice Sounds -->
+    <audio id="playerDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound1.mp3"
+        preload="auto"></audio>
+    <audio id="playerDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound2.mp3"
+        preload="auto"></audio>
+    <audio id="playerDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3"></audio>
+    <audio id="playerDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3"></audio>
+    <audio id="playerDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3"></audio>
+    <audio id="playerDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3"></audio>
+
+    <!-- Bot Dice Sounds -->
+    <audio id="botDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound7.mp3"
+        preload="auto"></audio>
+    <audio id="botDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound8.mp3"
+        preload="auto"></audio>
+    <audio id="botDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3"></audio>
+    <audio id="botDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3"></audio>
+    <audio id="botDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3"></audio>
+    <audio id="botDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3"></audio>
+
+    <!-- Hindi Audio Clips -->
+    <audio id="ladderHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/ladder_hindi.mp3"
+        preload="auto"></audio>
+    <audio id="snakeBiteHindi"
+        src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3"></audio>
+    <audio id="winHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3"></audio>
+    <audio id="botWinHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script>
+        let position = 1;
+        let botPosition = 1;
+        let isPlayerTurn = true;
+        let gameOver = false;
+        let backgroundMusic;
+        let ttsQueue = [];
+        let isTtsSpeaking = false;
+        let resetSound;
+        let rollDiceButton = document.getElementById("rollDiceButton");
+        let canRollDice = false;
+        let botMoveTimeout;
+        let gameStarted = false;
+        let currentLanguage = 'en'; // Default language is English
+        let playerName = '';
+
+        // Snakes and Ladders positions
+        const snakesAndLadders = {
+            2: 38,
+            7: 14,
+            8: 31,
+            15: 26,
+            21: 42,
+            28: 84,
+            36: 44,
+            51: 67,
+            71: 91,
+            78: 98,
+            87: 94,
+            16: 6,
+            46: 25,
+            49: 11,
+            62: 19,
+            64: 60,
+            74: 53,
+            89: 68,
+            92: 88,
+            95: 75,
+            99: 80
+        };
+
+        // Translations
+        const translations = {
+            en: {
+                gameReady: "Game ready. Your position: ",
+                botLocation: "Bot's position: ",
+                roll: "You rolled ",
+                rolled: "rolled",
+                youAreAt: "Your position is ",
+                botPositionIs: "Bot position is",
+                wouldGoOver: "You would go over, so you move back to ",
+                climbedLadder: "Guess what? You climbed a ladder and are now at ",
+                snakeBite: "Oops! A snake bit you, causing you to slide down to ",
+                yourPosition: "Your position is ",
+                botRolled: "The bot rolled ",
+                botWouldGoOver: "The bot would go over, so it moves back to ",
+                botClimbedLadder: "The bot climbed a ladder, reaching ",
+                botSnakeBite: "Bad luck! The bot got bitten by a snake and slid down to ",
+                nowYourTurn: "Now it's your turn! Go ahead and roll the dice.",
+                winMessage: "Congratulations! You won!",
+                loseMessage: "The bot won! Better luck next time.",
+                resetMessage: "Game has been reset. You are now at position 1.",
+                snakesLaddersInfo: "Snakes and Ladders Information:\n\n",
+                ladder: "ladder",
+                snake: "snake",
+                climbsUp: "climbs up to",
+                bitesAndSlidesDown: "bites and slides down to",
+                startGameMessage: "Welcome to the game! Please roll the dice to start.",
+                editName: "Edit Name",
+                saveName: "Save Name",
+                playerNameLabel: "Player Name:",
+                playerNamePlaceholder: "Enter your name",
+                selectLanguageLabel: "Select Language:",
+                startTheGame: "Start Game",
+                positionIs: "position is",
+                yourTurn: "Your turn"
+
+            },
+            hi: {
+                gameReady: "गेम तैयार है। आपकी स्थिति: ",
+                botLocation: "बॉट की स्थिति: ",
+                roll: "आपने फेंका ",
+                rolled: "ने फेंका",
+                youAreAt: "आप हैं",
+                botPositionIs: "बॉट है ",
+                wouldGoOver: "आप आगे निकल जाते, इसलिए आप वापस चले जाते हैं ",
+                climbedLadder: "अंदाजा लगाओ क्या? आप एक सीढ़ी चढ़ गए और अब पर हैं ",
+                snakeBite: "ऊप्स! एक सांप ने आपको काट लिया, जिससे आप फिसलकर पर आ गए ",
+                yourPosition: "आपका स्थान है ",
+                botRolled: "बॉट ने फेंका ",
+                botWouldGoOver: "बॉट आगे निकल जाता, इसलिए वह वापस चला जाता है ",
+                botClimbedLadder: "बॉट एक सीढ़ी चढ़ गया, तक पहुंच गया ",
+                botSnakeBite: "बुरी किस्मत! बॉट को एक सांप ने काट लिया और वह फिसलकर पर चला गया ",
+                nowYourTurn: "अब आपकी बारी है! आगे बढ़ें और डाइस को रोल करें।",
+                winMessage: "मुबारक हो! आप जीत गए!",
+                loseMessage: "बॉट जीत गया! अगली बार बेहतर किस्मत।",
+                resetMessage: "गेम रीसेट हो गया है। अब आप स्थान 1 पर हैं।",
+                snakesLaddersInfo: "सांप और सीढ़ी जानकारी:\n\n",
+                ladder: "सीढ़ी",
+                snake: "सांप",
+                climbsUp: "ऊपर चढ़ता है",
+                bitesAndSlidesDown: "काटता है और नीचे सरकता है",
+                startGameMessage: "गेम में आपका स्वागत है! शुरू करने के लिए डाइस रोल करें।",
+                editName: "नाम बदलें",
+                saveName: "नाम सुरक्षित करें",
+                playerNameLabel: "खिलाड़ी का नाम:",
+                playerNamePlaceholder: "अपना नाम दर्ज करें",
+                selectLanguageLabel: "भाषा चुनें:",
+                startTheGame: "खेल शुरू करें",
+                positionIs: "पर स्थान है",
+                yourTurn: "आपकी बारी"
+            }
+        };
+
+        // Function to play a specific dice sound
+        function playDiceSound(dice, isPlayer) {
+            const soundId = isPlayer ? `playerDice${dice}` : `botDice${dice}`;
+            const sound = document.getElementById(soundId);
+            sound.play();
+        }
+
+        // Function to speak using the TTS API with queue
+        function speakText(text, callback) {
+            ttsQueue.push({
+                text: text,
+                callback: callback
+            });
+            if (!isTtsSpeaking) {
+                processTtsQueue();
+            }
+        }
+
+        function processTtsQueue() {
+            if (ttsQueue.length === 0) {
+                isTtsSpeaking = false;
+                return;
+            }
+
+            isTtsSpeaking = true;
+            const item = ttsQueue.shift();
+            const text = item.text;
+            const callback = item.callback;
+            // Use the selected language to choose the voice
+            const voice = currentLanguage === 'hi' ? 'Hemant' : 'Brian'; // 'Brian' for English
+            const ttsApiUrl = `https://advanced-tts.darkhacker7301.workers.dev/?message=${encodeURIComponent(text)}&voice=${voice}`;
+            const audio = new Audio(ttsApiUrl);
+            audio.play();
+
+            audio.onended = () => {
+                setTimeout(() => {
+                    if (callback) callback();
+                    processTtsQueue();
+                }, 30); // Reduced to 0.03 seconds gap
+            };
+        }
+
+        // Function to set the language
+        function setLanguage() {
+            currentLanguage = document.getElementById("language").value;
+            updateText();
+        }
+
+        // Function to update text based on the selected language
+        function updateText() {
+            const lang = translations[currentLanguage];
+            document.getElementById("rollDiceButton").textContent = (currentLanguage === 'en') ? "Roll Dice" : "डाइस रोल करें";
+            document.getElementById("gameStatus").textContent = lang.gameReady + position;
+            document.getElementById("botStatus").textContent = lang.botLocation + botPosition;
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(1)").textContent = (currentLanguage === 'en') ? "How to Play:" : "कैसे खेलें:";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(2)").textContent = (currentLanguage === 'en') ? "1. Swipe up to start the game." : "1. गेम शुरू करने के लिए ऊपर स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(3)").textContent = (currentLanguage === 'en') ? "2. Press 'R' to roll the dice and move your piece on Windows." : "2. विंडोज पर डाइस रोल करने और अपनी चाल चलने के लिए 'R' दबाएं।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(4)").textContent = (currentLanguage === 'en') ? "3. Swipe right to roll the dice and move your piece on Android." : "3. एंड्रॉइड पर डाइस रोल करने और अपनी चाल चलने के लिए दाएं स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(5)").textContent = (currentLanguage === 'en') ? "4. Swipe left to reset the game." : "4. गेम रीसेट करने के लिए बाएं स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(6)").textContent = (currentLanguage === 'en') ? "5. The first player to reach position 100 triumphs in the game." : "5. गेम में 100वें स्थान पर पहुंचने वाला पहला खिलाड़ी जीतता है।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(7)").textContent = (currentLanguage === 'en') ? "6. The game is turn-based, so hold on for your turn after rolling the dice." : "6. गेम बारी-बारी से खेला जाता है, इसलिए डाइस रोल करने के बाद अपनी बारी का इंतजार करें।";
+            document.getElementById("gameInfo").querySelector("h2").textContent = (currentLanguage === 'en') ? "Game Information" : "खेल की जानकारी";
+            document.getElementById("gameInfo").querySelector("p").textContent = (currentLanguage === 'en') ? "Snakes and Ladders positions:" : "सांप और सीढ़ी की स्थिति:";
+            document.getElementById("languageSelection").querySelector("label").textContent = (currentLanguage === 'en') ? "Select Language:" : "भाषा चुनें:";
+            document.getElementById("nameInputArea").querySelector("label").textContent = (currentLanguage === 'en') ? "Player Name:" : "खिलाड़ी का नाम:";
+            document.getElementById("nameInputArea").querySelector("#playerName").placeholder = (currentLanguage === 'en') ? "Enter your name" : "अपना नाम दर्ज करें";
+            document.getElementById("nameInputArea").querySelector("button:nth-child(2)").textContent = (currentLanguage === 'en') ? "Save Name" : "नाम सुरक्षित करें";
+            document.getElementById("mainMenu").querySelector("button").textContent = (currentLanguage === 'en') ? "Start Game" : "खेल शुरू करें";
+            document.getElementById("gameInfo").querySelector("button").textContent = (currentLanguage === 'en') ? "Close" : "बंद करें";
+
+        }
+
+        function startGame() {
+            playerName = localStorage.getItem('playerName') || '';
+            if (!playerName) {
+                alert((currentLanguage === 'en' ? "Please enter your name first!" : "कृपया पहले अपना नाम दर्ज करें!"));
+                return;
+            }
+            document.getElementById("mainMenu").style.display = "none";
+            document.getElementById("gameArea").style.display = "block";
+
+            backgroundMusic = document.getElementById("backgroundMusic");
+            backgroundMusic.loop = true;
+            backgroundMusic.play();
+
+            resetSound = document.getElementById("resetSound");
+            resetSound.loop = true;
+            resetSound.play();
+
+            resetGame();
+            const lang = translations[currentLanguage];
+            setTimeout(() => {
+                speakText((currentLanguage === 'en' ? "Welcome to the game, " : "गेम में आपका स्वागत है, ") + playerName + (currentLanguage === 'en' ? "! Please roll the dice." : "! कृपया डाइस रोल करें।"), () => {
+                    enableRollDice();
+                    canRollDice = true;
+                });
+            }, 2000);
+
+            disableRollDice();
+            canRollDice = false;
+            gameStarted = true;
+        }
+
+        function rollDice() {
+            if (gameOver || !isPlayerTurn || !canRollDice) return;
+
+            disableRollDice();
+            canRollDice = false;
+
+            const dice = Math.floor(Math.random() * 6) + 1;
+            playDiceSound(dice, true);
+            let newPosition = position + dice;
+
+            if (newPosition > 100) {
+                newPosition = 100 - (newPosition - 100);
+                const statusText = (currentLanguage === 'en' ? playerName : "") + translations[currentLanguage].rolled + ` ${dice}. ` + translations[currentLanguage].wouldGoOver + `${newPosition}.`;
+                document.getElementById("gameStatus").textContent = statusText;
+                speakText(statusText);
+            } else {
+                const statusText = (currentLanguage === 'en' ? playerName : "") + translations[currentLanguage].rolled + ` ${dice}.`;
+                document.getElementById("gameStatus").textContent = statusText;
+                speakText(statusText);
+            }
+
+            position = newPosition;
+
+            // Check for snakes and ladders
+            if (snakesAndLadders[position]) {
+                const oldPosition = position;
+                position = snakesAndLadders[position]; // Move to the new position
+                if (position > oldPosition) {
+                    const statusText = translations[currentLanguage].climbedLadder + `${position}.`;
+                    document.getElementById("gameStatus").textContent += ` ${statusText}`;
+                    speakText(statusText);
+                    document.getElementById("ladderSound").play();
+                    if (currentLanguage === 'hi') {
+                        document.getElementById("ladderHindi").play();
+                    }
+                } else {
+                    const statusText = translations[currentLanguage].snakeBite + `${position}.`;
+                    document.getElementById("gameStatus").textContent += ` ${statusText}`;
+                    speakText(statusText);
+                    document.getElementById("snakeBiteSound").play();
+                    if (currentLanguage === 'hi') {
+                        document.getElementById("snakeBiteHindi").play();
+                    }
+                }
+            }
+
+            document.getElementById("dice").textContent = dice;
+            let positionText = "";
+            if (currentLanguage === 'en') {
+                positionText = playerName ? `${playerName}'s` : "Your";
+            }
+            else {
+                positionText = playerName ? `${playerName}` : "आप";
+            }
+
+            if (position === 100) {
+                handleWin();
+            } else {
+                const statusText = positionText + translations[currentLanguage].positionIs + `${position}`;
+                document.getElementById("gameStatus").textContent += ` ${statusText}`;
+                speakText(statusText);
+                document.getElementById("moveSound").play();
+            }
+
+            isPlayerTurn = false;
+            botMoveTimeout = setTimeout(botTurn, 3500);
+        }
+
+        function botTurn() {
+            if (gameOver) return;
+
+            setTimeout(() => {
+                const botDice = Math.floor(Math.random() * 6) + 1;
+                playDiceSound(botDice, false);
+                let newBotPosition = botPosition + botDice;
+
+                if (newBotPosition > 100) {
+                    newBotPosition = 100 - (newBotPosition - 100);
+                    const statusText = translations[currentLanguage].botRolled + `${botDice}. ` + translations[currentLanguage].botWouldGoOver + `${newBotPosition}.`;
+                    document.getElementById("botStatus").textContent = statusText;
+                    speakText(statusText);
+                } else {
+                    const statusText = translations[currentLanguage].botRolled + `${botDice}.`;
+                    document.getElementById("botStatus").textContent = statusText;
+                    speakText(statusText);
+                }
+
+                const oldBotPosition = botPosition;
+                botPosition = newBotPosition;
+
+                // Check for snakes and ladders
+                if (snakesAndLadders[botPosition]) {
+                    const oldBotPosition = botPosition;
+                    botPosition = snakesAndLadders[botPosition]; // Move to the new position
+                    if (botPosition > oldBotPosition) {
+                        const statusText = translations[currentLanguage].botClimbedLadder + `${botPosition}.`;
+                        document.getElementById("botStatus").textContent += ` ${statusText}`;
+                        speakText(statusText);
+                        document.getElementById("ladderSound").play();
+                    } else {
+                        const statusText = translations[currentLanguage].botSnakeBite + `${botPosition}.`;
+                        document.getElementById("botStatus").textContent += ` ${statusText}`;
+                        speakText(statusText);
+                        document.getElementById("snakeBiteSound").play();
+                    }
+                }
+
+                document.getElementById("botMoveSound").play();
+                document.getElementById("dice").textContent = botDice;
+                const statusText = translations[currentLanguage].botLocation + `${botPosition}`;
+                document.getElementById("botStatus").textContent += ` ${statusText}`;
+                speakText(statusText);
+
+                isPlayerTurn = true;
+                document.getElementById("turnSound").play();
+            }, 2000);
+
+            setTimeout(() => {
+                const statusText = playerName + translations[currentLanguage].yourTurn;
+                document.getElementById("gameStatus").textContent = statusText;
+                speakText(statusText, () => {
+                    enableRollDice();
+                    canRollDice = true;
+                });
+            }, 9000);
+        }
+
+        function handleWin() {
+            gameOver = true;
+            clearTimeout(botMoveTimeout);
+            canRollDice = false;
+            const winText = (currentLanguage === 'en' ? "Congratulations " : "बधाई ") + playerName + (currentLanguage === 'en' ? "! You won!" : "! आप जीत गए!");
+            document.getElementById("gameStatus").textContent = winText;
+            speakText((currentLanguage === 'en' ? "Congratulations! You won!" : "बधाई! आप जीत गए!"));
+            document.getElementById("winSound").play();
+            if (currentLanguage === 'hi') {
+                document.getElementById("winHindi").play();
+            }
+
+            resetSound.pause();
+            resetSound.currentTime = 0;
+
+            document.getElementById("gameArea").style.display = "none";
+            document.getElementById("winMessage").style.display = "block";
+        }
+
+        function handleLose() {
+            gameOver = true;
+            clearTimeout(botMoveTimeout);
+            canRollDice = false;
+            const loseText = (currentLanguage === 'en' ? "The bot won! Better luck next time." : "बॉट जीत गया! अगली बार बेहतर किस्मत।");
+            document.getElementById("botStatus").textContent = loseText;
+
+            resetSound.pause();
+            resetSound.currentTime = 0;
+
+            speakText((currentLanguage === 'en' ? "The bot won! Better luck next time." : "बॉट जीत गया! अगली बार बेहतर किस्मत।"), () => {
+                document.getElementById("botWinSound").play();
+                if (currentLanguage === 'hi') {
+                    document.getElementById("botWinHindi").play();
+                }
+            });
+
+            document.getElementById("gameArea").style.display = "none";
+            document.getElementById("loseMessage").style.display = "block";
+        }
+
+        function resetGame() {
+            resetSound.currentTime = 0;
+
+            position = 1;
+            botPosition = 1;
+            isPlayerTurn = true;
+            gameOver = false;
+            canRollDice = false;
+            clearTimeout(botMoveTimeout);
+
+            document.getElementById("gameStatus").textContent = translations[currentLanguage].gameReady + position;
+            document.getElementById("botStatus").textContent = translations[currentLanguage].botLocation + botPosition;
+            document.getElementById("dice").textContent = "";
+            speakText(translations[currentLanguage].resetMessage, () => {
+                setTimeout(() => {
+                    enableRollDice();
+                    canRollDice = true;
+                }, 7000);
+                disableRollDice();
+            });
+
+            document.getElementById("winMessage").style.display = "none";
+            document.getElementById("loseMessage").style.display = "none";
+            document.getElementById("gameArea").style.display = "block";
+        }
+
+        function enableRollDice() {
+            rollDiceButton.disabled = false;
+        }
+
+        function disableRollDice() {
+            rollDiceButton.disabled = true;
+        }
+
+        function showGameInfo() {
+            let infoText = translations[currentLanguage].snakesLaddersInfo;
+            for (const [start, end] of Object.entries(snakesAndLadders)) {
+                const type = (currentLanguage === 'en' ? translations[currentLanguage].ladder : translations[currentLanguage].snake);
+                const action = (currentLanguage === 'en' ? translations[currentLanguage].climbsUp : translations[currentLanguage].bitesAndSlidesDown);
+                infoText += `स्थान ${start}: ${type} ${action} ${end}\n`;
+            }
+            document.getElementById("snakesLaddersInfo").textContent = infoText;
+            document.getElementById("gameInfo").style.display = "block";
+        }
+
+        function hideGameInfo() {
+            document.getElementById("gameInfo").style.display = "none";
+        }
+
+        // Function to save player name to local storage
+        function savePlayerName() {
+            const name = document.getElementById("playerName").value;
+            if (name) {
+                localStorage.setItem('playerName', name);
+                playerName = name;
+                document.getElementById("playerName").disabled = true;
+                document.getElementById("editNameButton").style.display = "inline-block";
+                document.querySelector("#nameInputArea > button:nth-child(2)").style.display = 'none';
+            } else {
+                alert((currentLanguage === 'en' ? "Please enter a valid name!" : "कृपया एक मान्य नाम दर्ज करें!"));
+            }
+        }
+
+        function editPlayerName() {
+            document.getElementById("playerName").disabled = false;
+            document.getElementById("editNameButton").style.display = "none";
+            document.querySelector("#nameInputArea > button:nth-child(2)").style.display = 'inline-block';
+            document.getElementById("playerName").focus();
+
+        }
+
+        window.onload = function () {
+            const sounds = document.querySelectorAll('audio');
+            sounds.forEach(sound => {
+                sound.load();
+            });
+
+            const resetSound = document.getElementById("resetSound");
+            resetSound.volume = 0.20;
+
+            disableRollDice();
+            canRollDice = false;
+
+            // Load saved player name
+            playerName = localStorage.getItem('playerName') || '';
+            const nameInput = document.getElementById('playerName');
+            const editNameButton = document.getElementById('editNameButton');
+            const saveNameButton = document.querySelector("#nameInputArea > button:nth-child(2)");
+            if (playerName) {
+                nameInput.value = playerName;
+                nameInput.disabled = true;
+                editNameButton.style.display = "inline-block";
+                saveNameButton.style.display = "none";
+            } else {
+                editNameButton.style.display = "none";
+                saveNameButton.style.display = "inline-block";
+            }
+
+            // Set the default language
+            setLanguage();
+        };
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.key === 'r' || event.key === 'R') && canRollDice) {
+                rollDice();
+            }
+        });
+
+        const hammer = new Hammer(document.body);
+        hammer.get('swipe').set({
+            direction: Hammer.DIRECTION_HORIZONTAL
+        });
+
+        hammer.add(new Hammer.Swipe({
+            event: 'swipeup',
+            direction: Hammer.DIRECTION_UP
+        }));
+        hammer.on('swipeup', (event) => {
+            if (!gameStarted) {
+                startGame();
+            }
+        });
+
+        hammer.on('swiperight', (event) => {
+            if (canRollDice && gameStarted) {
+                rollDice();
+            }
+        });
+
+        hammer.on('swipeleft', (event) => {
+            if (gameStarted) {
+                resetGame();
+            }
+        });
+    </script>
+</body>
+
+</html>
