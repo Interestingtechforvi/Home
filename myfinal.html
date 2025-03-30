@@ -1,932 +1,720 @@
 <!DOCTYPE html>
+<html lang="en">
 
-<html> 
-    <head> <title>Shootout Challenge</title> <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script> <style> body { font-family: 'Arial', sans-serif; background-color: #222; color: #eee; text-align: center; margin: 0; padding: 0; overflow: hidden; }
- 
-    h1 {
-        margin-top: 20px;
-        color: #ddd;
-    }
-
-    #initialScreen {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(34, 34, 34, 0.8);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    }
-
-    #initialScreen p {
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
-
-    #modeSelection {
-        margin-top: 20px;
-    }
-
-    #modeSelection button {
-        background-color: #5cb85c;
-        color: white;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 22px;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-        margin: 5px;
-    }
-
-    #modeSelection button:hover {
-        background-color: #449d44;
-    }
-
-    #onlineSetup {
-        display: none;
-        margin-top: 20px;
-    }
-
-    #onlineSetup input[type="text"],
-    #onlineSetup button {
-        padding: 10px;
-        margin: 5px;
-        font-size: 18px;
-    }
-
-    #start-btn {
-        background-color: #5cb85c;
-        color: white;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 22px;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-    }
-
-    #start-btn:hover {
-        background-color: #449d44;
-    }
-
-    #game-area {
-        margin: 20px auto;
-        padding: 30px;
-        max-width: 600px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border: 1px solid #555;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        display: none;
-        position: relative;
-    }
-
-    #controls {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-
-    .shoot-btn {
-        background-color: #337ab7;
-        color: white;
-        padding: 15px 30px;
-        font-size: 24px;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        margin: 0 10px;
-        transition: background-color 0.3s;
-        width: 120px;
-    }
-
-    .shoot-btn:hover {
-        background-color: #235a81;
-    }
-
-    #pause-btn {
-        background-color: #ffcc00;
-        border: none;
-        padding: 12px 24px;
-        font-size: 20px;
-        cursor: pointer;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-    }
-
-    #pause-btn:hover {
-        background-color: #e6b800;
-    }
-
-    #scoreboard {
-        margin-top: 20px;
-        font-size: 28px;
-        font-weight: bold;
-        color: #fff;
-    }
-
-    #loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-
-    .loader {
-        border: 16px solid #f3f3f3;
-        border-top: 16px solid #3498db;
-        border-radius: 50%;
-        width: 120px;
-        height: 120px;
-        animation: spin 2s linear infinite;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>blind assist loodo, साँप सीड़ी</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        100% {
-            transform: rotate(360deg);
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
-    }
 
-    #endGameScreen {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(34, 34, 34, 0.8);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        text-align: center;
-        display: none;
-    }
+        button:hover {
+            background-color: #367C39;
+        }
 
-    #endGameScreen h2 {
-        color: #fff;
-        margin-bottom: 20px;
-    }
+        #gameStatus,
+        #botStatus {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
 
-    #endGameScreen button {
-        background-color: #5cb85c;
-        color: white;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 22px;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        transition: background-color 0.3s;
-        margin-top: 20px;
-    }
+        #instructions {
+            margin-top: 20px;
+            font-size: 1em;
+        }
 
-    #endGameScreen button:hover {
-        background-color: #449d44;
-    }
+        #dice {
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border: 2px solid #555;
+            margin: 20px auto;
+            font-size: 2em;
+            line-height: 50px;
+            display: inline-block;
+        }
 
-    #player,
-    #enemy {
-        position: relative;
-        width: 100px;
-        height: 100px;
-        margin: 20px auto;
-        background-color: #4CAF50;
-        border-radius: 50%;
-        transition: transform 0.3s ease;
-    }
+        #mainMenu {
+            display: block;
+        }
 
-    #player.shoot-left {
-        transform: translateX(-150px);
-    }
+        #gameArea {
+            display: none;
+        }
 
-    #player.shoot-center {
-        transform: translateX(0);
-    }
+        .win-message,
+        .lose-message {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
 
-    #player.shoot-right {
-        transform: translateX(150px);
-    }
+        #languageSelection {
+            margin-bottom: 10px;
+        }
 
-    #enemy.attack-left {
-        transform: translateX(-150px);
-    }
+        #nameInputArea {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
 
-    #enemy.attack-center {
-        transform: translateX(0);
-    }
+<body>
+    <h1>Accessible loodo game with Snakes and Ladders</h1>
 
-    #enemy.attack-right {
-        transform: translateX(150px);
-    }
+    <div id="mainMenu">
+        <div id="languageSelection">
+            <label for="language">Select Language:</label>
+            <select id="language" onchange="setLanguage()">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+            </select>
+        </div>
 
-    .obstacle {
-        position: absolute;
-        width: 50px;
-        height: 50px;
-        background-color: #f44336;
-        border-radius: 50%;
-    }
+        <div id="nameInputArea">
+            <label for="playerName">Player Name:</label>
+            <input type="text" id="playerName" placeholder="Enter your name" />
+            <button onclick="savePlayerName()">Save Name</button>
+            <button onclick="editPlayerName()" id="editNameButton" style="display:none;">Edit Name</button>
+        </div>
 
-    #waitingScreen {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(34, 34, 34, 0.8);
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        text-align: center;
-        display: none;
-    }
-
-    #hostIdDisplay {
-        margin-top: 10px;
-        font-size: 16px;
-        color: #ddd;
-    }
-
-    #copyHostId {
-        background-color: #007BFF;
-        color: white;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-left: 10px;
-        font-size: 14px;
-    }
-
-    #copyHostId:hover {
-        background-color: #0056b3;
-    }
-
-    #peerIdInput {
-        display: inline-block;
-    }
-
-    button,
-    input[type="text"] {
-        font-size: 1.2em;
-        padding: 0.5em;
-    }
-
-    button:focus,
-    input[type="text"]:focus {
-        outline: 2px solid yellow;
-    }
-</style>
-</head> <body onload="playMainScreenAudio()"> <div id="loading-overlay"> <div class="loader"></div> </div>
- 
-<h1>Shootout Challenge</h1>
-
-<div id="initialScreen">
-    <p>Welcome to the Shootout Challenge! Get ready!</p>
-    <div id="modeSelection">
-        <button onclick="setupBotGame()">Play with Bot</button>
-        <button onclick="setupOnlineGame(true)">Host Game</button>
-        <button onclick="setupOnlineGame(false)">Join Game</button>
+        <div id="instructions">
+            <p>How to Play:</p>
+            <p>1. Swipe up to start the game.</p>
+            <p>2. Try to roll the dice within 5 seconds after you hear the instruction to roll.</p>
+            <p>3. Swipe right to roll the dice and move your piece.</p>
+            <p>4. Swipe left to reset the game.</p>
+            <p>5. The first player to reach position 100 triumphs in the game.</p>
+            <p>6. The game is turn-based, so wait for your turn after rolling.</p>
+            <p>7. You have 7 seconds to roll the dice after your turn begins.</p>
+        </div>
+        <button onclick="startGame()">Start Game</button>
     </div>
-    <div id="onlineSetup">
-        <p>Enter Host ID:</p>
-        <input type="text" id="peerIdInput" placeholder="Host ID">
-        <button onclick="connectToPeer()">Connect</button>
+
+    <div id="gameArea">
+        <div id="gameStatus">Game ready. Your position: 1</div>
+        <div id="botStatus">Bot's position: 1</div>
+        <button onclick="rollDice()" id="rollDiceButton">Roll Dice</button>
+        <div id="dice"></div>
+        <button onclick="resetGame()">Reset Game</button>
+        <button onclick="showGameInfo()">Game Information</button>
     </div>
-    <div id="hostIdDisplay">
-        Your Host ID: <span id="myPeerId"></span>
-        <button id="copyHostId" onclick="copyToClipboard()" style="display:none;">Copy ID</button>
+
+    <div id="winMessage" class="win-message" style="display:none;">Yay, you’ve triumphed in this game!</div>
+    <div id="loseMessage" class="lose-message" style="display:none;">Gosh, you didn’t quite make it this time, but the bot did! No sweat, let's give it another shot.</div>
+
+    <div id="gameInfo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); color:white; z-index:1000;">
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); padding:20px; background-color:#333; border-radius:10px;">
+            <h2>Game Information</h2>
+            <p>Snakes and Ladders positions:</p>
+            <pre id="snakesLaddersInfo"></pre>
+            <button onclick="hideGameInfo()">Close</button>
+        </div>
     </div>
-</div>
 
-<div id="game-area" style="display: none;">
-    <div id="player"></div>
-    <div id="enemy"></div>
-    <div id="controls">
-        <button class="shoot-btn" data-direction="left">Shoot Left</button>
-        <button class="shoot-btn" data-direction="center">Shoot Center</button>
-        <button class="shoot-btn" data-direction="right">Shoot Right</button>
-    </div>
-    <button id="pause-btn" onclick="togglePause()">Pause Game</button>
-    <div id="scoreboard">
-        Player: <span id="player-score">0</span> | Enemy: <span id="enemy-score">0</span>
-    </div>
-</div>
+    <audio id="backgroundMusic" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Bgm.mp3" preload="auto" loop></audio>
+    <audio id="diceSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3" preload="auto"></audio>
+    <audio id="moveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+    <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/winsound.mp3" preload="auto"></audio>
+    <audio id="botMoveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+    <audio id="botWinSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3" preload="auto"></audio>
+    <audio id="turnSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3"></audio>
+    <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/preset.mp3" loop preload="auto"></audio>
+    <audio id="ladderSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3"></audio>
+    <audio id="snakeBiteSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3"></audio>
+    <audio id="playerDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound1.mp3" preload="auto"></audio>
+    <audio id="playerDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound2.mp3" preload="auto"></audio>
+    <audio id="playerDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3"></audio>
+    <audio id="playerDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3"></audio>
+    <audio id="playerDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3"></audio>
+    <audio id="playerDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3"></audio>
+    <audio id="botDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound7.mp3" preload="auto"></audio>
+    <audio id="botDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound8.mp3" preload="auto"></audio>
+    <audio id="botDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3"></audio>
+    <audio id="botDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3"></audio>
+    <audio id="botDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3"></audio>
+    <audio id="botDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3"></audio>
+    <audio id="ladderHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/ladder_hindi.mp3" preload="auto"></audio>
+    <audio id="snakeBiteHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3"></audio>
+    <audio id="winHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3"></audio>
+    <audio id="botWinHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3"></audio>
 
-<div id="endGameScreen" style="display: none;">
-    <h2 id="endGameMessage"></h2>
-    <button onclick="resetGame()">Play Again</button>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script>
+        let position = 1;
+        let botPosition = 1;
+        let isPlayerTurn = true;
+        let gameOver = false;
+        let backgroundMusic;
+        let ttsQueue = [];
+        let isTtsSpeaking = false;
+        let resetSound;
+        let rollDiceButton = document.getElementById("rollDiceButton");
+        let canRollDice = false;
+        let botMoveTimeout;
+        let gameStarted = false;
+        let currentLanguage = 'en';
+        let playerName = '';
+        let rollTimeout;
+        let hasRolled = false;
 
-<div id="waitingScreen" style="display: none;">
-    <p>Waiting for opponent... Please share this Host ID: <span id="waitingPeerId"></span>
-        <button id="copyWaitingId" onclick="copyGameIdToClipboard()">Copy ID</button>
-    </p>
-</div>
+        const snakesAndLadders = {
+            2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 78: 98, 87: 94,
+            16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 92: 88, 95: 75, 99: 80
+        };
 
-<script>
-    let peer;
-    let peerId;
-    let conn;
-    let isHost = false;
-    let isOnlineGame = false;
-    let playerScore = 0;
-    let enemyScore = 0;
-    let enemyDirection = "";
-    let enemyTimeout;
-    let gameInterval;
-    let isPaused = false;
-    let enemyAttacked = false;
-    const enemyDirections = ['left', 'center', 'right'];
-    let mainScreenAudio;
-    let volumeBeforeGame;
-    let canShoot = true;
-    let timeBetweenAttacks = 6800;
-    let attackDelay = 3000;
-    let playerTurn = true;
-    let shotTimer;
-    let shotsRemaining = 10;
-    let botGameInterval;
-    let noShotTimer;
-
-    const audioFiles = {
-        mainScreen: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen.mp3',
-        gameStart: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/game%20start%20sound%20effect.mp3',
-        left: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/left.mp3',
-        center: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/centre.mp3',
-        right: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/right.mp3',
-        playerHit: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/achievement-bell1.mp3',
-        enemyHit: 'https://www.myinstants.com/media/sounds/gun.mp3',
-        win: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_1.mp3',
-        lose: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3',
-        buttonPress: 'https://www.myinstants.com/media/sounds/mouse-click.mp3',
-        playerShoot: 'https://www.myinstants.com/media/sounds/gun.mp3',
-        enemyAlert: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3',
-        draw: 'https://www.myinstants.com/media/sounds/crowd-cheering.mp3',
-        clap: 'https://www.myinstants.com/media/sounds/applause.mp3',
-        newWave: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/New%20wave.mp3',
-        obstacle: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Beep%20sound%20effect.mp3'
-    };
-
-    const preloadedAudio = {};
-
-    const preloadAudio = (url) => {
-        return new Promise((resolve, reject) => {
-            const audio = new Audio();
-            audio.src = url;
-            audio.addEventListener('canplaythrough', () => {
-                preloadedAudio[url] = audio;
-                resolve(audio);
-            });
-            audio.addEventListener('error', () => {
-                reject(new Error(`Failed to load audio ${url}`));
-            });
-        });
-    };
-
-    const playAudio = (url) => {
-        if (preloadedAudio[url]) {
-            const audio = preloadedAudio[url];
-            audio.currentTime = 0;
-            audio.play();
-        } else {
-            console.warn(`Audio not preloaded: ${url}`);
-        }
-    };
-
-    function playMainScreenAudio() {
-        mainScreenAudio = new Audio(audioFiles.mainScreen);
-        mainScreenAudio.loop = true;
-        mainScreenAudio.volume = 1;
-        mainScreenAudio.play();
-    }
-
-    function stopMainScreenAudio() {
-        if (mainScreenAudio) {
-            mainScreenAudio.pause();
-            mainScreenAudio.currentTime = 0;
-        }
-    }
-
-    function setVolume(audio, volume) {
-        if (audio && audio.volume !== undefined) {
-            audio.volume = volume;
-        }
-    }
-
-    function copyToClipboard() {
-        const textToCopy = document.getElementById('myPeerId').textContent;
-        navigator.clipboard.writeText(textToCopy)
-            .then(() => {
-                alert('Host ID copied!');
-                speak("Host ID copied!");
-            })
-            .catch(err => {
-                console.error('Failed to copy: ', err);
-                alert('Oops, failed to copy Host ID. Please copy manually.');
-                speak("Oops, failed to copy Host ID. Please copy manually.");
-            });
-        playAudio(audioFiles.buttonPress);
-    }
-
-    function setupBotGame() {
-        isOnlineGame = false;
-        document.getElementById('onlineSetup').style.display = 'none';
-        startGame();
-        startBotGame();
-        speak("Starting game with Bot");
-    }
-
-    function startBotGame() {
-        document.getElementById('initialScreen').style.display = 'none';
-        document.getElementById('game-area').style.display = 'block';
-        isOnlineGame = false;
-
-        if (mainScreenAudio) {
-            volumeBeforeGame = mainScreenAudio.volume;
-            setVolume(mainScreenAudio, volumeBeforeGame * 0.4);
-        }
-
-        stopMainScreenAudio();
-        playAudio(audioFiles.gameStart);
-        speak("Game Starting with Bot!");
-
-        playerTurn = true;
-        canShoot = true;
-        shotsRemaining = 10;
-        updateShotsRemainingDisplay();
-
-        startEnemyAppearance();
-    }
-
-    function setupOnlineGame(host) {
-        isOnlineGame = true;
-        isHost = host;
-        document.getElementById('onlineSetup').style.display = !host;
-
-        peer = new Peer();
-
-        peer.on('open', (id) => {
-            peerId = id;
-            document.getElementById('myPeerId').textContent = id;
-            console.log('My Peer ID is: ' + id);
-            document.getElementById('copyHostId').style.display = 'inline-block';
-
-            if (isHost) {
-                startHosting();
-                speak("You are the host. Waiting for someone to join.");
-            } else {
-                document.getElementById('initialScreen').style.display = 'block';
-                document.getElementById('onlineSetup').style.display = 'block';
-                speak("Enter the Host ID to connect");
+        const translations = {
+            en: {
+                gameReady: "Game ready. ",
+                botLocation: "Bot's position: ",
+                roll: " rolled ",
+                rolled: "rolled",
+                youAreAt: "'s position is ",
+                botPositionIs: "Bot position is",
+                wouldGoOver: " would go over, so they stay at ",
+                climbedLadder: " climbed a ladder and is now at ",
+                snakeBite: " was bitten by a snake and slid down to ",
+                yourPosition: "'s position is ",
+                botRolled: "The bot rolled ",
+                botWouldGoOver: "The bot would go over, so it stays at ",
+                botClimbedLadder: "The bot climbed a ladder, reaching ",
+                botSnakeBite: "The bot was bitten by a snake and slid down to ",
+                nowYourTurn: ", it's your turn! Please roll the dice.",
+                winMessage: "Congratulations! You won!",
+                loseMessage: "The bot won! Better luck next time.",
+                resetMessage: "Game has been reset. ",
+                snakesLaddersInfo: "Snakes and Ladders Information:\n\n",
+                ladder: "ladder",
+                snake: "snake",
+                climbsUp: "climbs up to",
+                bitesAndSlidesDown: "bites and slides down to",
+                startGameMessage: "Welcome to the game, ",
+                editName: "Edit Name",
+                saveName: "Save Name",
+                playerNameLabel: "Player Name:",
+                playerNamePlaceholder: "Enter your name",
+                selectLanguageLabel: "Select Language:",
+                startTheGame: "Start Game",
+                positionIs: "'s position is ",
+                yourTurn: "'s turn",
+                timeUp: ", time's up! Bot's turn now."
+            },
+            hi: {
+                gameReady: "गेम तैयार है। ",
+                botLocation: "बॉट की स्थिति: ",
+                roll: " ने फेंका ",
+                rolled: "ने फेंका",
+                youAreAt: " की स्थिति ",
+                botPositionIs: "बॉट है ",
+                wouldGoOver: " आगे निकल जाता, इसलिए वह वहीं पर ही रहता है ",
+                climbedLadder: " ने एक सीढ़ी चढ़ी और अब  है ",
+                snakeBite: " को सांप ने काट लिया और वह  फिसल गया ",
+                yourPosition: " की स्थिति ",
+                botRolled: "बॉट ने फेंका ",
+                botWouldGoOver: "बॉट आगे निकल जाता, इसलिए वह वहीं पर ही रहता है ",
+                botClimbedLadder: "बॉट ने एक सीढ़ी चढ़ी और  पहुंच गया ",
+                botSnakeBite: "बॉट को सांप ने काट लिया और वह  फिसल गया ",
+                nowYourTurn: ", अब आपकी बारी है! कृपया डाइस रोल करें।",
+                winMessage: "मुबारक हो! आप जीत गए!",
+                loseMessage: "बॉट जीत गया! अगली बार बेहतर किस्मत।",
+                resetMessage: "गेम रीसेट हो गया है। ",
+                snakesLaddersInfo: "सांप और सीढ़ी जानकारी:\n\n",
+                ladder: "सीढ़ी",
+                snake: "सांप",
+                climbsUp: "ऊपर चढ़ता है",
+                bitesAndSlidesDown: "काटता है और नीचे सरकता है",
+                startGameMessage: "गेम में आपका स्वागत है, ",
+                editName: "नाम बदलें",
+                saveName: "नाम सुरक्षित करें",
+                playerNameLabel: "खिलाड़ी का नाम:",
+                playerNamePlaceholder: "अपना नाम दर्ज करें",
+                selectLanguageLabel: "भाषा चुनें:",
+                startTheGame: "खेल शुरू करें",
+                positionIs: " की स्थिति ",
+                yourTurn: " की बारी",
+                timeUp: ", समय समाप्त! अब बॉट की बारी।"
             }
-        });
+        };
 
-        peer.on('connection', (connection) => {
-            conn = connection;
-            console.log("Connected to peer!");
-            stopWaitingScreen();
-            startOnlineGame();
-            speak("Connected to opponent. Game starting!");
-
-            conn.on('data', (data) => {
-                handleOpponentData(data);
-            });
-
-            conn.on('close', () => {
-                endGame("Opponent Disconnected!");
-                speak("Opponent Disconnected!");
-            });
-
-            conn.on('error', (err) => {
-                console.error(err);
-                alert("Connection error. Let me check the console for details.");
-                speak("Connection error. Please check the console.");
-                endGame("Connection Error!");
-            });
-        });
-
-        peer.on('disconnected', () => {
-            console.log("Disconnected!");
-            endGame("Disconnected from Opponent!");
-            speak("Disconnected from Opponent!");
-        });
-
-        peer.on('error', (err) => {
-            console.error(err);
-            alert("PeerJS error!");
-            endGame("PeerJS Error!");
-            speak("PeerJS Error!");
-        });
-    }
-
-    function startHosting() {
-        document.getElementById('initialScreen').style.display = 'none';
-        document.getElementById('waitingScreen').style.display = 'block';
-        document.getElementById('waitingPeerId').textContent = peerId;
-        document.getElementById('copyHostId').style.display = 'none';
-        console.log("Hosting game with ID: " + peerId);
-        speak("Hosting game. Waiting for opponent to connect.");
-    }
-
-    function connectToPeer() {
-        const peerIdToConnect = document.getElementById('peerIdInput').value;
-        document.getElementById('onlineSetup').style.display = 'none';
-
-        if (peer) {
-            conn = peer.connect(peerIdToConnect);
-
-            conn.on('open', () => {
-                console.log("Connected to peer: " + peerIdToConnect);
-                stopWaitingScreen();
-                startOnlineGame();
-                speak("Connected to opponent. Game starting!");
-            });
-
-            conn.on('data', (data) => {
-                handleOpponentData(data);
-            });
-
-            conn.on('close', () => {
-                endGame("Opponent Disconnected!");
-                speak("Opponent Disconnected!");
-            });
-
-            conn.on('error', (err) => {
-                console.error(err);
-                alert("Connection error!");
-                endGame("Connection Failed!");
-                speak("Connection Failed!");
-            });
-        } else {
-            alert("PeerJS not initialized!");
-            speak("PeerJS not initialized!");
-        }
-    }
-
-    function startGame() {
-        document.getElementById('initialScreen').style.display = 'none';
-        document.getElementById('game-area').style.display = 'block';
-
-        if (mainScreenAudio) {
-            volumeBeforeGame = mainScreenAudio.volume;
-            setVolume(mainScreenAudio, volumeBeforeGame * 0.4);
+        function playDiceSound(dice, isPlayer) {
+            const soundId = isPlayer ? `playerDice${dice}` : `botDice${dice}`;
+            const sound = document.getElementById(soundId);
+            sound.play();
         }
 
-        stopMainScreenAudio();
-        playAudio(audioFiles.gameStart);
-    }
-
-    function startOnlineGame() {
-        document.getElementById('initialScreen').style.display = 'none';
-        document.getElementById('game-area').style.display = 'block';
-        document.getElementById('onlineSetup').style.display = 'none';
-        isOnlineGame = true;
-
-        if (mainScreenAudio) {
-            volumeBeforeGame = mainScreenAudio.volume;
-            setVolume(mainScreenAudio, volumeBeforeGame * 0.4);
+        function speakText(text, callback) {
+            ttsQueue.push({ text, callback });
+            if (!isTtsSpeaking) processTtsQueue();
         }
 
-        stopMainScreenAudio();
-        playAudio(audioFiles.gameStart);
-        speak("Online Game Starting!");
-
-        if (isHost) {
-            speak("Your turn to shoot first!");
-        } else {
-            speak("Opponent's turn to shoot first. Get ready to defend!");
-        }
-
-        shotsRemaining = 10;
-        updateShotsRemainingDisplay();
-
-        if (isHost) {
-            startPlayerTurn();
-        } else {
-            startEnemyAppearance(); // Start enemy appearance for the joining player
-        }
-    }
-
-    function updateShotsRemainingDisplay() {
-        console.log(`Shots Remaining: ${shotsRemaining}`);
-    }
-
-    function startPlayerTurn() {
-        playerTurn = true;
-        canShoot = true;
-        shotsRemaining = 10;
-        updateShotsRemainingDisplay();
-        speak("Your turn! Listen for the enemy position.");
-        startEnemyAppearance();
-    }
-
-    function startEnemyAppearance() {
-        if (gameInterval) {
-            clearInterval(gameInterval);
-        }
-
-        gameInterval = setInterval(() => {
-            if (!isPaused && playerTurn) {
-                enemyDirection = enemyDirections[Math.floor(Math.random() * 3)];
-                playDirectionAudio(enemyDirection);
-
-                // Clear any existing timer
-                clearTimeout(noShotTimer);
-
-                // Set a new timer for enemy auto-shoot
-                noShotTimer = setTimeout(() => {
-                    if (playerTurn && shotsRemaining > 0) {
-                        speak("Time's up! Enemy shoots automatically.");
-                        enemyShootsAutomatically();
-                    }
-                }, attackDelay);
-            }
-        }, timeBetweenAttacks);
-    }
-
-    function enemyShootsAutomatically() {
-        clearTimeout(shotTimer);
-        clearTimeout(noShotTimer); // Clear the no-shot timer
-        if (!playerTurn) return;
-
-        playerTurn = false;
-        canShoot = false;
-
-        if (conn) {
-            conn.send({
-                type: 'enemyShoot',
-                direction: enemyDirection
-            });
-        }
-        simulateEnemyShoot(enemyDirection);
-
-        setTimeout(() => {
-            if (conn) {
-                sendData({
-                    type: "endTurn",
-                });
-            }
-            speak("your turn! Get Ready");
-            startPlayerTurn();
-        }, 3000);
-
-    }
-
-    function playDirectionAudio(direction) {
-        let audioUrl;
-        switch (direction) {
-            case 'left':
-                audioUrl = audioFiles.left;
-                break;
-            case 'center':
-                audioUrl = audioFiles.center;
-                break;
-            case 'right':
-                audioUrl = audioFiles.right;
-                break;
-        }
-
-        if (audioUrl) {
-            playAudio(audioUrl);
-        }
-    }
-
-    document.querySelectorAll('.shoot-btn').forEach(button => {
-        button.onclick = () => {
-            if (isPaused || !playerTurn || !canShoot) {
+        function processTtsQueue() {
+            if (ttsQueue.length === 0) {
+                isTtsSpeaking = false;
                 return;
             }
-
-            playAudio(audioFiles.buttonPress);
-            const direction = button.dataset.direction;
-            shoot(direction);
-        };
-    });
-
-    function shoot(direction) {
-        clearTimeout(shotTimer);
-        clearTimeout(noShotTimer); // Clear the no-shot timer
-
-        if (playerTurn && canShoot) {
-            canShoot = false;
-            playerTurn = false;
-
-            playAudio(audioFiles.playerShoot);
-            const player = document.getElementById('player');
-            player.classList.add(`shoot-${direction}`);
-            let hit = false;
-
-            if (enemyDirection === direction) {
-                playerScore++;
-                document.getElementById('player-score').textContent = playerScore;
-                playAudio(audioFiles.playerHit);
-                speak("Player scores!");
-                hit = true;
-                if (navigator.vibrate) {
-                    navigator.vibrate(500);
-                }
-            }
-
-            if (conn) {
-                sendData({
-                    type: 'shoot',
-                    direction: direction,
-                    hit: hit,
-                    enemyDirection: enemyDirection
-                });
-            }
-
-            checkWinner();
-
-            setTimeout(() => {
-                player.classList.remove(`shoot-${direction}`);
-
+            isTtsSpeaking = true;
+            const { text, callback } = ttsQueue.shift();
+            const voice = currentLanguage === 'hi' ? 'Hemant' : 'Brian';
+            const ttsApiUrl = `https://advanced-tts.darkhacker7301.workers.dev/?message=${encodeURIComponent(text)}&voice=${voice}`;
+            const audio = new Audio(ttsApiUrl);
+            audio.play();
+            audio.onended = () => {
                 setTimeout(() => {
-                    canShoot = true;
-                }, 500);
-            }, 300);
-            shotsRemaining--;
-            updateShotsRemainingDisplay();
+                    if (callback) callback();
+                    processTtsQueue();
+                }, 30);
+            };
+        }
 
-            setTimeout(() => {
-                if (conn) {
-                    sendData({
-                        type: "endTurn",
+        function setLanguage() {
+            currentLanguage = document.getElementById("language").value;
+            updateText();
+        }
+
+        function updateText() {
+            const lang = translations[currentLanguage];
+            document.getElementById("rollDiceButton").textContent = currentLanguage === 'en' ? "Roll Dice" : "डाइस रोल करें";
+            document.getElementById("gameStatus").textContent = `${lang.gameReady}${playerName}${lang.youAreAt}${position}`;
+            document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(1)").textContent = currentLanguage === 'en' ? "How to Play:" : "कैसे खेलें:";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(2)").textContent = currentLanguage === 'en' ? "1. Swipe up to start the game." : "1. गेम शुरू करने के लिए ऊपर स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(3)").textContent = currentLanguage === 'en' ? "2. Try to roll the dice within 5 seconds after you hear the instruction to roll." : "2. रोल करने की सूचना सुनने के 5 सेकंड के भीतर डाइस रोल करने की कोशिश करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(4)").textContent = currentLanguage === 'en' ? "3. Swipe right to roll the dice and move your piece." : "3. डाइस रोल करने और अपनी चाल चलने के लिए दाएं स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(5)").textContent = currentLanguage === 'en' ? "4. Swipe left to reset the game." : "4. गेम रीसेट करने के लिए बाएं स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(6)").textContent = currentLanguage === 'en' ? "5. The first player to reach position 100 triumphs in the game." : "5. गेम में 100वें स्थान पर पहुंचने वाला पहला खिलाड़ी जीतता है।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(7)").textContent = currentLanguage === 'en' ? "6. The game is turn-based, so wait for your turn after rolling." : "6. गेम बारी-बारी से खेला जाता है, इसलिए डाइस रोल करने के बाद अपनी बारी का इंतजार करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(8)").textContent = currentLanguage === 'en' ? "7. You have 7 seconds to roll the dice after your turn begins." : "7. आपकी बारी शुरू होने के बाद आपके पास डाइस रोल करने के लिए 7 सेकंड हैं।";
+            document.getElementById("gameInfo").querySelector("h2").textContent = currentLanguage === 'en' ? "Game Information" : "खेल की जानकारी";
+            document.getElementById("gameInfo").querySelector("p").textContent = currentLanguage === 'en' ? "Snakes and Ladders positions:" : "सांप और सीढ़ी की स्थिति:";
+            document.getElementById("languageSelection").querySelector("label").textContent = lang.selectLanguageLabel;
+            document.getElementById("nameInputArea").querySelector("label").textContent = lang.playerNameLabel;
+            document.getElementById("nameInputArea").querySelector("#playerName").placeholder = lang.playerNamePlaceholder;
+            document.getElementById("nameInputArea").querySelector("button:nth-child(2)").textContent = lang.saveName;
+            document.getElementById("mainMenu").querySelector("button").textContent = lang.startTheGame;
+            document.getElementById("gameInfo").querySelector("button").textContent = currentLanguage === 'en' ? "Close" : "बंद करें";
+        }
+
+        function startGame() {
+            playerName = localStorage.getItem('playerName') || '';
+            if (!playerName) {
+                alert(currentLanguage === 'en' ? "Please enter your name first!" : "कृपया पहले अपना नाम दर्ज करें!");
+                return;
+            }
+            document.getElementById("mainMenu").style.display = "none";
+            document.getElementById("gameArea").style.display = "block";
+            document.getElementById("gameArea").setAttribute("aria-live", "off");
+            document.getElementById("gameArea").setAttribute("aria-busy", "true");
+            document.getElementById("gameArea").setAttribute("aria-modal", "true");
+
+            backgroundMusic = document.getElementById("backgroundMusic");
+            backgroundMusic.loop = true;
+            backgroundMusic.play();
+
+            resetSound = document.getElementById("resetSound");
+            resetSound.loop = true;
+            resetSound.play();
+
+            resetGame();
+            const lang = translations[currentLanguage];
+            speakText(`${lang.startGameMessage}${playerName}! ${currentLanguage === 'en' ? "Please roll the dice." : "कृपया डाइस रोल करें।"}`, () => {
+                enableRollDice();
+                canRollDice = true;
+                startRollTimer();
+            });
+
+            gameStarted = true;
+        }
+
+        function startRollTimer() {
+            clearTimeout(rollTimeout);
+            rollTimeout = setTimeout(() => {
+                if (isPlayerTurn && !gameOver && !hasRolled) {
+                    const lang = translations[currentLanguage];
+                    disableRollDice();
+                    canRollDice = false;
+                    speakText(`${playerName}${lang.timeUp}`, () => {
+                        isPlayerTurn = false;
+                        hasRolled = false;
+                        botMoveTimeout = setTimeout(botTurn, 500);
                     });
                 }
-                speak("your turn! Get Ready");
-                startPlayerTurn();
-            }, 3000);
+            }, 7000); // 7 seconds
         }
-    }
 
-    function handleOpponentData(data) {
-        if (data && data.type === 'shoot') {
-            simulateOpponentShoot(data.direction, data.hit);
-        } else if (data && data.type === 'enemyShoot') {
-            simulateEnemyShoot(data.direction);
-        } else if (data && data.type === "endTurn") {
-            console.log("end turn message received");
-            startPlayerTurn();
-        }
-    }
+        function rollDice() {
+            if (gameOver || !isPlayerTurn || !canRollDice || hasRolled) return;
 
-    function simulateOpponentShoot(direction, hit) {
-        const enemy = document.getElementById('enemy');
-        enemy.classList.add(`attack-${direction}`);
+            clearTimeout(rollTimeout);
+            disableRollDice();
+            canRollDice = false;
+            hasRolled = true;
 
-        setTimeout(() => {
-            enemy.classList.remove(`attack-${direction}`);
-            if (hit) {
-                enemyScore++;
-                document.getElementById('enemy-score').textContent = enemyScore;
-                playAudio(audioFiles.enemyHit);
-                speak("Enemy scores!");
-                if (navigator.vibrate) {
-                    navigator.vibrate(500);
+            const dice = Math.floor(Math.random() * 6) + 1;
+            playDiceSound(dice, true);
+            let newPosition = position + dice;
+            const lang = translations[currentLanguage];
+
+            let statusText = `${playerName}${lang.roll}${dice}.`;
+            document.getElementById("gameStatus").textContent = statusText;
+            speakText(statusText);
+
+            if (newPosition > 100) {
+                statusText = `${playerName}${lang.wouldGoOver}${position}.`;
+                document.getElementById("gameStatus").textContent = statusText;
+                speakText(statusText);
+                newPosition = position;
+            }
+
+            position = newPosition;
+
+            if (snakesAndLadders[position]) {
+                const oldPosition = position;
+                position = snakesAndLadders[position];
+                if (position > oldPosition) {
+                    statusText = `${playerName}${lang.climbedLadder}${position}.`;
+                    document.getElementById("gameStatus").textContent = statusText;
+                    speakText(statusText);
+                    document.getElementById("ladderSound").play();
+                    if (currentLanguage === 'hi') document.getElementById("ladderHindi").play();
+                } else {
+                    statusText = `${playerName}${lang.snakeBite}${position}.`;
+                    document.getElementById("gameStatus").textContent = statusText;
+                    speakText(statusText);
+                    document.getElementById("snakeBiteSound").play();
+                    if (currentLanguage === 'hi') document.getElementById("snakeBiteHindi").play();
                 }
             }
-            checkWinner();
-        }, 500);
 
-        canShoot = true;
-    }
+            document.getElementById("dice").textContent = dice;
 
-    function simulateEnemyShoot(direction) {
-        // Play enemy hit sound when the enemy scores automatically
-        playAudio(audioFiles.enemyHit);
-        if (direction === enemyDirection) {
-            enemyScore++; // Corrected this line to increment enemyScore
-            document.getElementById('enemy-score').textContent = enemyScore;
-            playAudio(audioFiles.playerHit);
-            speak("Enemy scores!");
-            checkWinner();
-        }
-    }
-
-    function checkWinner() {
-        if (playerScore >= 10) {
-            endGame("You Win!");
-            playAudio(audioFiles.win);
-            speak("You Win!");
-        } else if (enemyScore >= 10) {
-            endGame("Enemy Wins!");
-            playAudio(audioFiles.lose);
-            speak("Enemy Wins!");
-        }
-    }
-
-    function endGame(message) {
-        clearInterval(gameInterval);
-        clearTimeout(shotTimer);
-        clearTimeout(noShotTimer);  // Clear the no-shot timer
-        clearInterval(botGameInterval);
-
-        document.getElementById('endGameMessage').textContent = message;
-        document.getElementById('game-area').style.display = 'none';
-        document.getElementById('endGameScreen').style.display = 'block';
-        speak(message);
-
-        if (message === "You Win!") {
-            playAudio(audioFiles.clap);
-            document.getElementById('endGameMessage').textContent = "Hurray! You Win!";
+            if (position === 100) {
+                handleWin();
+            } else {
+                statusText = `${playerName}${lang.positionIs}${position}`;
+                document.getElementById("gameStatus").textContent = statusText;
+                speakText(statusText, () => {
+                    document.getElementById("moveSound").play();
+                    isPlayerTurn = false;
+                    botMoveTimeout = setTimeout(botTurn, 500);
+                });
+            }
         }
 
-        if (conn) {
-            conn.close();
-            conn = null;
+        function botTurn() {
+            if (gameOver) return;
+
+            clearTimeout(botMoveTimeout);
+
+            const botDice = Math.floor(Math.random() * 6) + 1;
+            playDiceSound(botDice, false);
+            let newBotPosition = botPosition + botDice;
+            const lang = translations[currentLanguage];
+
+            let statusText = `${lang.botRolled}${botDice}.`;
+            document.getElementById("botStatus").textContent = statusText;
+            speakText(statusText);
+
+            if (newBotPosition > 100) {
+                statusText = `${lang.botWouldGoOver}${botPosition}.`;
+                document.getElementById("botStatus").textContent = statusText;
+                speakText(statusText);
+                newBotPosition = botPosition;
+            }
+
+            botPosition = newBotPosition;
+
+            if (snakesAndLadders[botPosition]) {
+                const oldBotPosition = botPosition;
+                botPosition = snakesAndLadders[botPosition];
+                if (botPosition > oldBotPosition) {
+                    statusText = `${lang.botClimbedLadder}${botPosition}.`;
+                    document.getElementById("botStatus").textContent = statusText;
+                    speakText(statusText);
+                    document.getElementById("ladderSound").play();
+                } else {
+                    statusText = `${lang.botSnakeBite}${botPosition}.`;
+                    document.getElementById("botStatus").textContent = statusText;
+                    speakText(statusText);
+                    document.getElementById("snakeBiteSound").play();
+                }
+            }
+
+            document.getElementById("dice").textContent = botDice;
+            statusText = `${lang.botLocation}${botPosition}`;
+            document.getElementById("botStatus").textContent = statusText;
+            speakText(statusText, () => {
+                document.getElementById("botMoveSound").play();
+
+                if (botPosition === 100) {
+                    handleLose();
+                } else {
+                    const turnText = `${playerName}${lang.nowYourTurn}`;
+                    document.getElementById("gameStatus").textContent = turnText;
+                    speakText(turnText, () => {
+                        document.getElementById("turnSound").play();
+                        isPlayerTurn = true;
+                        hasRolled = false;
+                        enableRollDice();
+                        canRollDice = true;
+                        startRollTimer();
+                    });
+                }
+            });
         }
 
-        if (peer) {
-            peer.destroy();
-            peer = null;
+        function handleWin() {
+            gameOver = true;
+            clearTimeout(botMoveTimeout);
+            clearTimeout(rollTimeout);
+            canRollDice = false;
+            const lang = translations[currentLanguage];
+            const winText = `${currentLanguage === 'en' ? "Congratulations " : "बधाई "}${playerName}${currentLanguage === 'en' ? "! You won!" : "! आप जीत गए!"}`;
+            document.getElementById("gameStatus").textContent = winText;
+            speakText(lang.winMessage);
+            document.getElementById("winSound").play();
+            if (currentLanguage === 'hi') document.getElementById("winHindi").play();
+
+            resetSound.pause();
+            resetSound.currentTime = 0;
+
+            document.getElementById("gameArea").removeAttribute("aria-live");
+            document.getElementById("gameArea").removeAttribute("aria-busy");
+            document.getElementById("gameArea").removeAttribute("aria-modal");
+            document.getElementById("gameArea").style.display = "none";
+            document.getElementById("winMessage").style.display = "block";
         }
-    }
 
-    function resetGame() {
-        clearInterval(gameInterval);
-        clearTimeout(shotTimer);
-        clearTimeout(noShotTimer);  // Clear the no-shot timer
-        clearInterval(botGameInterval);
+        function handleLose() {
+            gameOver = true;
+            clearTimeout(botMoveTimeout);
+            clearTimeout(rollTimeout);
+            canRollDice = false;
+            const lang = translations[currentLanguage];
+            const loseText = lang.loseMessage;
+            document.getElementById("botStatus").textContent = loseText;
 
-        if (mainScreenAudio) {
-            setVolume(mainScreenAudio, volumeBeforeGame);
+            resetSound.pause();
+            resetSound.currentTime = 0;
+
+            speakText(loseText, () => {
+                document.getElementById("botWinSound").play();
+                if (currentLanguage === 'hi') document.getElementById("botWinHindi").play();
+            });
+
+            document.getElementById("gameArea").removeAttribute("aria-live");
+            document.getElementById("gameArea").removeAttribute("aria-busy");
+            document.getElementById("gameArea").removeAttribute("aria-modal");
+            document.getElementById("gameArea").style.display = "none";
+            document.getElementById("loseMessage").style.display = "block";
         }
 
-        document.getElementById('endGameScreen').style.display = 'none';
-        document.getElementById('initialScreen').style.display = 'block';
-        document.getElementById('onlineSetup').style.display = 'none';
-        speak("Starting a new game!");
+        function resetGame() {
+            resetSound.currentTime = 0;
+            position = 1;
+            botPosition = 1;
+            isPlayerTurn = true;
+            gameOver = false;
+            canRollDice = false;
+            hasRolled = false;
+            clearTimeout(botMoveTimeout);
+            clearTimeout(rollTimeout);
 
-        playMainScreenAudio();
-        playerScore = 0;
-        enemyScore = 0;
-        document.getElementById('player-score').textContent = playerScore;
-        document.getElementById('enemy-score').textContent = enemyScore;
-    }
+            const lang = translations[currentLanguage];
+            document.getElementById("gameStatus").textContent = `${lang.resetMessage}${playerName}${lang.youAreAt}${position}`;
+            document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
+            document.getElementById("dice").textContent = "";
 
-    function togglePause() {
-        isPaused = !isPaused;
+            speakText(`${lang.resetMessage}${playerName}${lang.youAreAt}${position}`, () => {
+                const turnText = `${playerName}${lang.nowYourTurn}`;
+                document.getElementById("gameStatus").textContent = turnText;
+                speakText(turnText, () => {
+                    enableRollDice();
+                    canRollDice = true;
+                    startRollTimer();
+                });
+            });
 
-        document.getElementById('pause-btn').textContent = isPaused ? "Resume Game" : "Pause Game";
-        speak(isPaused ? "Game Paused" : "Game Resumed");
-
-        if (!isPaused) {
-            startEnemyAppearance();
-        } else {
-            clearInterval(gameInterval);
-            clearTimeout(shotTimer);
-            clearTimeout(noShotTimer);  // Clear the no-shot timer
+            document.getElementById("winMessage").style.display = "none";
+            document.getElementById("loseMessage").style.display = "none";
+            document.getElementById("gameArea").style.display = "block";
         }
-    }
 
-    function sendData(data) {
-        if (conn) {
-            conn.send(data);
+        function enableRollDice() {
+            rollDiceButton.disabled = false;
+            rollDiceButton.style.display = "inline-block";
         }
-    }
 
-    function speak(text) {
-        const audioUrl = `https://ar-tts.ashlynn.workers.dev/?text=${encodeURIComponent(text)}`;
-        const audio = new Audio(audioUrl);
-        audio.play();
-    }
+        function disableRollDice() {
+            rollDiceButton.disabled = true;
+            rollDiceButton.style.display = "none";
+        }
 
-    function startWaitingScreen() {
-        document.getElementById('initialScreen').style.display = 'none';
-        document.getElementById('waitingScreen').style.display = 'block';
-        document.getElementById('waitingPeerId').textContent = peerId;
-    }
+        function showGameInfo() {
+            const lang = translations[currentLanguage];
+            let infoText = lang.snakesLaddersInfo;
+            for (const [start, end] of Object.entries(snakesAndLadders)) {
+                const type = currentLanguage === 'en' ? lang.ladder : lang.snake;
+                const action = currentLanguage === 'en' ? lang.climbsUp : lang.bitesAndSlidesDown;
+                infoText += `स्थान ${start}: ${type} ${action} ${end}\n`;
+            }
+            document.getElementById("snakesLaddersInfo").textContent = infoText;
+            document.getElementById("gameInfo").style.display = "block";
+        }
 
-    function stopWaitingScreen() {
-        document.getElementById('waitingScreen').style.display = 'none';
-    }
+        function hideGameInfo() {
+            document.getElementById("gameInfo").style.display = "none";
+        }
 
-    Promise.all(Object.values(audioFiles).map(preloadAudio))
-        .then(() => {
-            console.log('All audio preloaded!');
-            document.getElementById('loading-overlay').style.display = 'none';
-            alert('Welcome to shootout challenge game!');
-            playMainScreenAudio();
+        function savePlayerName() {
+            const name = document.getElementById("playerName").value;
+            if (name) {
+                localStorage.setItem('playerName', name);
+                playerName = name;
+                document.getElementById("playerName").disabled = true;
+                document.getElementById("editNameButton").style.display = "inline-block";
+                document.querySelector("#nameInputArea > button:nth-child(2)").style.display = 'none';
+                updateText();
+            } else {
+                alert(currentLanguage === 'en' ? "Please enter a valid name!" : "कृपया एक मान्य नाम दर्ज करें!");
+            }
+        }
+
+        function editPlayerName() {
+            document.getElementById("playerName").disabled = false;
+            document.getElementById("editNameButton").style.display = "none";
+            document.querySelector("#nameInputArea > button:nth-child(2)").style.display = 'inline-block';
+            document.getElementById("playerName").focus();
+        }
+
+        window.onload = function () {
+            const sounds = document.querySelectorAll('audio');
+            sounds.forEach(sound => sound.load());
+
+            resetSound = document.getElementById("resetSound");
+            resetSound.volume = 0.20;
+            backgroundMusic = document.getElementById("backgroundMusic");
+            backgroundMusic.volume = 0.15;
+
+            disableRollDice();
+            canRollDice = false;
+
+            playerName = localStorage.getItem('playerName') || '';
+            const nameInput = document.getElementById('playerName');
+            const editNameButton = document.getElementById('editNameButton');
+            const saveNameButton = document.querySelector("#nameInputArea > button:nth-child(2)");
+            if (playerName) {
+                nameInput.value = playerName;
+                nameInput.disabled = true;
+                editNameButton.style.display = "inline-block";
+                saveNameButton.style.display = "none";
+            } else {
+                editNameButton.style.display = "none";
+                saveNameButton.style.display = "inline-block";
+            }
+
+            setLanguage();
+            setupGestures();
+        };
+
+        function setupGestures() {
+            const hammer = new Hammer(document.body);
+            hammer.get('swipe').set({
+                direction: Hammer.DIRECTION_ALL,
+                threshold: 10, // Minimum distance in pixels before recognizing a swipe
+                velocity: 0.3  // Minimum velocity for swipe detection
+            });
+
+            hammer.on('swipeup', (event) => {
+                console.log('Swipe Up detected');
+                if (!gameStarted) {
+                    startGame();
+                }
+            });
+
+            hammer.on('swiperight', (event) => {
+                console.log('Swipe Right detected');
+                if (canRollDice && gameStarted && !hasRolled) {
+                    rollDice();
+                }
+            });
+
+            hammer.on('swipeleft', (event) => {
+                console.log('Swipe Left detected');
+                if (gameStarted) {
+                    resetGame();
+                }
+            });
+
+            // Fallback touch event listeners for Android
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchEndX = 0;
+            let touchEndY = 0;
+
+            document.body.addEventListener('touchstart', (event) => {
+                touchStartX = event.touches[0].clientX;
+                touchStartY = event.touches[0].clientY;
+            }, { passive: false });
+
+            document.body.addEventListener('touchmove', (event) => {
+                touchEndX = event.touches[0].clientX;
+                touchEndY = event.touches[0].clientY;
+            }, { passive: false });
+
+            document.body.addEventListener('touchend', (event) => {
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                const minDistance = 50; // Minimum swipe distance in pixels
+
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // Horizontal swipe
+                    if (deltaX > minDistance) {
+                        console.log('Touch Swipe Right');
+                        if (canRollDice && gameStarted && !hasRolled) rollDice();
+                    } else if (deltaX < -minDistance) {
+                        console.log('Touch Swipe Left');
+                        if (gameStarted) resetGame();
+                    }
+                } else {
+                    // Vertical swipe
+                    if (deltaY < -minDistance) {
+                        console.log('Touch Swipe Up');
+                        if (!gameStarted) startGame();
+                    }
+                }
+
+                // Reset coordinates
+                touchStartX = 0;
+                touchStartY = 0;
+                touchEndX = 0;
+                touchEndY = 0;
+            }, { passive: false });
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.key === 'r' || event.key === 'R') && canRollDice && !hasRolled) rollDice();
         });
-</script>
+    </script>
 </body>
- </html>
+</html>
