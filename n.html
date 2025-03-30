@@ -3,8 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>blind assist loodo, साँप सीड़ी</title>
+    <title> audio snakes and ladders game</title> साँप सीड़ी</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,9 +11,6 @@
             padding: 20px;
             background-color: #f0f0f0;
             color: #333;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
         }
 
         button {
@@ -102,7 +98,7 @@
         <div id="instructions">
             <p>How to Play:</p>
             <p>1. Swipe up to start the game.</p>
-            <p>2. Try to roll the dice within 5 seconds after you hear the instruction to roll.</p>
+            <p>2. Try to role the dice within 5 seconds after you listen the instruction to role. </p>
             <p>3. Swipe right to roll the dice and move your piece.</p>
             <p>4. Swipe left to reset the game.</p>
             <p>5. The first player to reach position 100 triumphs in the game.</p>
@@ -177,7 +173,7 @@
         let currentLanguage = 'en';
         let playerName = '';
         let rollTimeout;
-        let hasRolled = false;
+        let hasRolled = false; // Track if player has rolled in this turn
 
         const snakesAndLadders = {
             2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 78: 98, 87: 94,
@@ -299,8 +295,8 @@
             document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
             document.getElementById("mainMenu").querySelector("#instructions p:nth-child(1)").textContent = currentLanguage === 'en' ? "How to Play:" : "कैसे खेलें:";
             document.getElementById("mainMenu").querySelector("#instructions p:nth-child(2)").textContent = currentLanguage === 'en' ? "1. Swipe up to start the game." : "1. गेम शुरू करने के लिए ऊपर स्वाइप करें।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(3)").textContent = currentLanguage === 'en' ? "2. Try to roll the dice within 5 seconds after you hear the instruction to roll." : "2. रोल करने की सूचना सुनने के 5 सेकंड के भीतर डाइस रोल करने की कोशिश करें।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(4)").textContent = currentLanguage === 'en' ? "3. Swipe right to roll the dice and move your piece." : "3. डाइस रोल करने और अपनी चाल चलने के लिए दाएं स्वाइप करें।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(3)").textContent = currentLanguage === 'en' ? "2. Press 'R' to roll the dice and move your piece on Windows." : "2. विंडोज पर डाइस रोल करने और अपनी चाल चलने के लिए 'R' दबाएं।";
+            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(4)").textContent = currentLanguage === 'en' ? "3. Swipe right to roll the dice and move your piece on Android." : "3. एंड्रॉइड पर डाइस रोल करने और अपनी चाल चलने के लिए दाएं स्वाइप करें।";
             document.getElementById("mainMenu").querySelector("#instructions p:nth-child(5)").textContent = currentLanguage === 'en' ? "4. Swipe left to reset the game." : "4. गेम रीसेट करने के लिए बाएं स्वाइप करें।";
             document.getElementById("mainMenu").querySelector("#instructions p:nth-child(6)").textContent = currentLanguage === 'en' ? "5. The first player to reach position 100 triumphs in the game." : "5. गेम में 100वें स्थान पर पहुंचने वाला पहला खिलाड़ी जीतता है।";
             document.getElementById("mainMenu").querySelector("#instructions p:nth-child(7)").textContent = currentLanguage === 'en' ? "6. The game is turn-based, so wait for your turn after rolling." : "6. गेम बारी-बारी से खेला जाता है, इसलिए डाइस रोल करने के बाद अपनी बारी का इंतजार करें।";
@@ -365,10 +361,10 @@
         function rollDice() {
             if (gameOver || !isPlayerTurn || !canRollDice || hasRolled) return;
 
-            clearTimeout(rollTimeout);
+            clearTimeout(rollTimeout); // Clear the timer when the player rolls
             disableRollDice();
             canRollDice = false;
-            hasRolled = true;
+            hasRolled = true; // Mark that the player has rolled
 
             const dice = Math.floor(Math.random() * 6) + 1;
             playDiceSound(dice, true);
@@ -416,7 +412,7 @@
                 speakText(statusText, () => {
                     document.getElementById("moveSound").play();
                     isPlayerTurn = false;
-                    botMoveTimeout = setTimeout(botTurn, 500);
+                    botMoveTimeout = setTimeout(botTurn, 500); // Reduced delay
                 });
             }
         }
@@ -424,7 +420,7 @@
         function botTurn() {
             if (gameOver) return;
 
-            clearTimeout(botMoveTimeout);
+            clearTimeout(botMoveTimeout); // Ensure no duplicate bot turns
 
             const botDice = Math.floor(Math.random() * 6) + 1;
             playDiceSound(botDice, false);
@@ -474,7 +470,7 @@
                     speakText(turnText, () => {
                         document.getElementById("turnSound").play();
                         isPlayerTurn = true;
-                        hasRolled = false;
+                        hasRolled = false; // Reset for next player turn
                         enableRollDice();
                         canRollDice = true;
                         startRollTimer();
@@ -634,87 +630,28 @@
             }
 
             setLanguage();
-            setupGestures();
         };
-
-        function setupGestures() {
-            const hammer = new Hammer(document.body);
-            hammer.get('swipe').set({
-                direction: Hammer.DIRECTION_ALL,
-                threshold: 10, // Minimum distance in pixels before recognizing a swipe
-                velocity: 0.3  // Minimum velocity for swipe detection
-            });
-
-            hammer.on('swipeup', (event) => {
-                console.log('Swipe Up detected');
-                if (!gameStarted) {
-                    startGame();
-                }
-            });
-
-            hammer.on('swiperight', (event) => {
-                console.log('Swipe Right detected');
-                if (canRollDice && gameStarted && !hasRolled) {
-                    rollDice();
-                }
-            });
-
-            hammer.on('swipeleft', (event) => {
-                console.log('Swipe Left detected');
-                if (gameStarted) {
-                    resetGame();
-                }
-            });
-
-            // Fallback touch event listeners for Android
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let touchEndX = 0;
-            let touchEndY = 0;
-
-            document.body.addEventListener('touchstart', (event) => {
-                touchStartX = event.touches[0].clientX;
-                touchStartY = event.touches[0].clientY;
-            }, { passive: false });
-
-            document.body.addEventListener('touchmove', (event) => {
-                touchEndX = event.touches[0].clientX;
-                touchEndY = event.touches[0].clientY;
-            }, { passive: false });
-
-            document.body.addEventListener('touchend', (event) => {
-                const deltaX = touchEndX - touchStartX;
-                const deltaY = touchEndY - touchStartY;
-                const minDistance = 50; // Minimum swipe distance in pixels
-
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    // Horizontal swipe
-                    if (deltaX > minDistance) {
-                        console.log('Touch Swipe Right');
-                        if (canRollDice && gameStarted && !hasRolled) rollDice();
-                    } else if (deltaX < -minDistance) {
-                        console.log('Touch Swipe Left');
-                        if (gameStarted) resetGame();
-                    }
-                } else {
-                    // Vertical swipe
-                    if (deltaY < -minDistance) {
-                        console.log('Touch Swipe Up');
-                        if (!gameStarted) startGame();
-                    }
-                }
-
-                // Reset coordinates
-                touchStartX = 0;
-                touchStartY = 0;
-                touchEndX = 0;
-                touchEndY = 0;
-            }, { passive: false });
-        }
 
         document.addEventListener('keydown', (event) => {
             if ((event.key === 'r' || event.key === 'R') && canRollDice && !hasRolled) rollDice();
         });
+
+        const hammer = new Hammer(document.body, { prevent_default: true });
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
+        hammer.add(new Hammer.Swipe({ event: 'swipeup', direction: Hammer.DIRECTION_UP }));
+        hammer.on('swipeup', (event) => {
+            event.preventDefault();
+            if (!gameStarted) startGame();
+        });
+        hammer.on('swiperight', (event) => {
+            event.preventDefault();
+            if (canRollDice && gameStarted && !hasRolled) rollDice();
+        });
+        hammer.on('swipeleft', (event) => {
+            event.preventDefault();
+            if (gameStarted) resetGame();
+        });
     </script>
 </body>
+
 </html>
