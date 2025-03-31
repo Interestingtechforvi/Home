@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Post Page</title>
+<style>
+body { font-family: Arial, sans-serif; }
+#messages { white-space: pre-wrap; margin-top: 20px; }
+</style>
+</head>
+<body>
+<h1>Live Post Page</h1>
+
+<input type="text" id="nameInput" placeholder="Your full name" aria-label="Enter your full name">
+<input type="text" id="messageInput" placeholder="Type a message" aria-label="Type your message here">
+<button onclick="sendMessage()">Send Message</button>
+
+<input type="file" id="fileInput" aria-label="Choose a file to share">
+<button onclick="sendFile()">Share File</button>
+
+<div id="messages"></div>
+
+<script src="https://painted-scratched-alfalfa.glitch.me/socket.io/socket.io.js"></script>
+<script>
+const socket = io('https://painted-scratched-alfalfa.glitch.me');
+
+function sendMessage() {
+const name = document.getElementById('nameInput').value.trim();
+const message = document.getElementById('messageInput').value.trim();
+if (name && message) {
+socket.emit('message', { name, message });
+document.getElementById('messageInput').value = '';
+}
+}
+
+function sendFile() {
+const fileInput = document.getElementById('fileInput');
+const file = fileInput.files[0];
+if (file) {
+const formData = new FormData();
+formData.append('file', file);
+
+fetch('https://painted-scratched-alfalfa.glitch.me/upload', {
+method: 'POST',
+body: formData
+}).then(() => {
+fileInput.value = '';
+}).catch(err => console.error('Error uploading file:', err));
+}
+}
+
+socket.on('message', (data) => {
+const messagesDiv = document.getElementById('messages');
+messagesDiv.innerHTML += `<p><strong>${data.name}:</strong> ${data.message}</p>`;
+});
+
+socket.on('file', (data) => {
+const messagesDiv = document.getElementById('messages');
+messagesDiv.innerHTML += `<p>File shared: ${data.filename}</p>`;
+});
+</script>
+</body>
+</html>
