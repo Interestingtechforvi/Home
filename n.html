@@ -1,265 +1,486 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title> audio snakes and ladders game</title> साँप सीड़ी</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snakes and Ladders</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #f0f0f0;
-            color: #333;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            color: #2c3e50;
+            transition: background 0.5s, color 0.3s;
         }
-
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            font-size: 1.1em;
+        body.dark-theme {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ecf0f1;
+        }
+        h1 {
+            font-size: 2.8em;
+            margin: 25px 0;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+            text-align: center;
+            color: #2980b9;
+        }
+        body.dark-theme h1 {
+            color: #3498db;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 25px;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            transition: transform 0.3s ease-in-out;
+        }
+        body.dark-theme .container {
+            background: rgba(44, 62, 80, 0.9);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .navigate-up, .more-options {
+            font-size: 1.8em;
             cursor: pointer;
-            background-color: #4CAF50;
+            color: #27ae60;
+            position: absolute;
+            padding: 12px;
+            background: none;
+            border: none;
+            transition: color 0.3s;
+        }
+        .navigate-up:hover, .more-options:hover {
+            color: #219653;
+        }
+        .navigate-up {
+            top: 15px;
+            left: 15px;
+        }
+        .more-options {
+            top: 15px;
+            right: 15px;
+        }
+        button {
+            padding: 14px 28px;
+            margin: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #27ae60;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
         button:hover {
-            background-color: #367C39;
+            background-color: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
         }
-
-        #gameStatus,
-        #botStatus {
-            margin-top: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            box-shadow: none;
         }
-
-        #instructions {
-            margin-top: 20px;
-            font-size: 1em;
-        }
-
         #dice {
-            width: 50px;
-            height: 50px;
-            background-color: white;
-            border: 2px solid #555;
-            margin: 20px auto;
-            font-size: 2em;
-            line-height: 50px;
-            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background-color: #fff;
+            border: 3px solid #34495e;
+            margin: 25px auto;
+            font-size: 2.2em;
+            line-height: 60px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            text-align: center;
         }
-
-        #mainMenu {
-            display: block;
+        .section {
+            padding: 25px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease-in-out;
         }
-
-        #gameArea {
+        body.dark-theme .section {
+            background: rgba(52, 73, 94, 0.85);
+        }
+        .hidden {
             display: none;
         }
-
-        .win-message,
-        .lose-message {
-            font-size: 1.5em;
+        .dropdown, input[type="text"], input[type="file"], textarea {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #bdc3c7;
+            width: 220px;
+            transition: border-color 0.3s;
+        }
+        .dropdown:focus, input[type="text"]:focus, input[type="file"]:focus, textarea:focus {
+            border-color: #27ae60;
+        }
+        .slider {
+            width: 220px;
+            margin: 12px 0;
+            accent-color: #27ae60;
+        }
+        .win-message, .lose-message {
+            font-size: 1.8em;
             font-weight: bold;
-            margin-top: 20px;
+            text-align: center;
+            margin-top: 25px;
         }
-
-        #languageSelection {
-            margin-bottom: 10px;
+        .win-message { color: #27ae60; }
+        .lose-message { color: #e74c3c; }
+        #gameStatus, #botStatus {
+            font-size: 1.3em;
+            margin: 12px 0;
+            text-align: center;
         }
-
-        #nameInputArea {
-            margin-bottom: 10px;
+        p {
+            margin: 12px 0;
+            font-size: 1.2em;
+        }
+        .focusable:focus {
+            outline: 3px solid #27ae60;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-
 <body>
-    <h1>Accessible loodo game with Snakes and Ladders</h1>
+    <div class="container">
+        <h1>Accessible Snakes and Ladders</h1>
 
-    <div id="mainMenu">
-        <div id="languageSelection">
-            <label for="language">Select Language:</label>
-            <select id="language" onchange="setLanguage()">
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-            </select>
+        <!-- Main Screen -->
+        <div id="mainScreen" class="section" aria-label="Main Menu">
+            <button onclick="startGame()" aria-label="Start Game">Start Game</button>
+            <button class="more-options focusable" onclick="showMoreOptions()" aria-label="More Options">☰</button>
         </div>
 
-        <div id="nameInputArea">
-            <label for="playerName">Player Name:</label>
-            <input type="text" id="playerName" placeholder="Enter your name" />
-            <button onclick="savePlayerName()">Save Name</button>
-            <button onclick="editPlayerName()" id="editNameButton" style="display:none;">Edit Name</button>
+        <!-- More Options -->
+        <div id="moreOptions" class="section hidden" aria-label="More Options Menu">
+            <button class="navigate-up focusable" onclick="backToMain()" aria-label="Navigate Back to Main Menu">⬅</button>
+            <button onclick="showHowToPlay()" aria-label="How to Play">How to Play</button>
+            <button onclick="showSettings()" aria-label="Settings">Settings</button>
+            <button onclick="showGameInfo()" aria-label="Game Information">Game Information</button>
+            <button onclick="showCopyright()" aria-label="Copyright Details">Copyright Details</button>
+            <button onclick="showProfile()" aria-label="User Profile">User Profile</button>
         </div>
 
-        <div id="instructions">
-            <p>How to Play:</p>
-            <p>1. Swipe up to start the game.</p>
-            <p>2. Try to role the dice within 5 seconds after you listen the instruction to role. </p>
-            <p>3. Swipe right to roll the dice and move your piece.</p>
-            <p>4. Swipe left to reset the game.</p>
-            <p>5. The first player to reach position 100 triumphs in the game.</p>
-            <p>6. The game is turn-based, so wait for your turn after rolling.</p>
-            <p>7. You have 7 seconds to roll the dice after your turn begins.</p>
+        <!-- How to Play -->
+        <div id="howToPlay" class="section hidden" aria-label="How to Play Instructions">
+            <button class="navigate-up focusable" onclick="backToMoreOptions()" aria-label="Navigate Back to More Options">⬅</button>
+            <h2>How to Play</h2>
+            <div id="howToPlayText"></div>
         </div>
-        <button onclick="startGame()">Start Game</button>
-    </div>
 
-    <div id="gameArea">
-        <div id="gameStatus">Game ready. Your position: 1</div>
-        <div id="botStatus">Bot's position: 1</div>
-        <button onclick="rollDice()" id="rollDiceButton">Roll Dice</button>
-        <div id="dice"></div>
-        <button onclick="resetGame()">Reset Game</button>
-        <button onclick="showGameInfo()">Game Information</button>
-    </div>
+        <!-- Settings -->
+        <div id="settings" class="section hidden" aria-label="Settings Menu">
+            <button class="navigate-up focusable" onclick="backToMoreOptions()" aria-label="Navigate Back to More Options">⬅</button>
+            <h2>Settings</h2>
+            <h3>General</h3>
+            <button onclick="showProfileSettings()" aria-label="Profile Settings">Profile Settings</button>
+            <label>Game Language:
+                <select id="gameLanguage" onchange="changeLanguage()" aria-label="Select Game Language">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                </select>
+            </label>
+            <br>
+            <label>Dark Theme:
+                <input type="checkbox" id="darkTheme" onchange="toggleDarkTheme()" aria-label="Toggle Dark Theme">
+            </label>
+            <h3>Audio Settings</h3>
+            <label>Background Music:
+                <input type="checkbox" id="bgMusicToggle" onchange="toggleBgMusic()" aria-label="Toggle Background Music">
+            </label>
+            <br>
+            <label>Background Music Volume:
+                <input type="range" id="bgMusicVolume" class="slider" min="0" max="100" value="10" onchange="adjustBgMusicVolume()" aria-label="Adjust Background Music Volume">
+            </label>
+            <br>
+            <label>Preset Audio Volume:
+                <input type="range" id="presetVolume" class="slider" min="0" max="100" value="10" onchange="adjustPresetVolume()" aria-label="Adjust Preset Audio Volume">
+            </label>
+            <br>
+            <label>Effects and TTS Volume:
+                <input type="range" id="effectsVolume" class="slider" min="0" max="100" value="100" onchange="adjustEffectsVolume()" aria-label="Adjust Effects and TTS Volume">
+            </label>
+            <br>
+            <label>Commentary:
+                <input type="checkbox" id="commentaryToggle" onchange="toggleCommentary()" aria-label="Toggle Commentary">
+            </label>
+            <br>
+            <button onclick="showManageSounds()" aria-label="Manage Sounds and Effects">Manage Sounds and Effects</button>
+            <button onclick="showCustomCommentary()" aria-label="Edit Custom Commentary">Edit Custom Commentary</button>
+            <button onclick="showTtsVoice()" aria-label="Change TTS Voice">Change TTS Voice</button>
+            <br>
+            <button onclick="saveSettings()" aria-label="Save Settings">Save</button>
+            <button onclick="cancelSettings()" aria-label="Cancel Settings">Cancel</button>
+            <button onclick="resetSettings()" aria-label="Reset Settings to Default">Reset to Default</button>
+        </div>
 
-    <div id="winMessage" class="win-message" style="display:none;">Yay, you’ve triumphed in this game!</div>
-    <div id="loseMessage" class="lose-message" style="display:none;">Gosh, you didn’t quite make it this time, but the bot did! No sweat, let's give it another shot.</div>
+        <!-- Profile Settings -->
+        <div id="profileSettings" class="section hidden" aria-label="Profile Settings">
+            <button class="navigate-up focusable" onclick="backToSettings()" aria-label="Navigate Back to Settings">⬅</button>
+            <h2>Profile Settings</h2>
+            <label>Username: <input type="text" id="username" placeholder="Enter username" aria-label="Enter Username"></label>
+            <br>
+            <label>Profile Photo: <input type="file" id="profilePhoto" accept="image/*" aria-label="Upload Profile Photo"></label>
+            <br>
+            <img id="profilePreview" style="max-width: 100px; display: none;" alt="Profile Photo Preview">
+            <button onclick="saveProfile()" aria-label="Save Profile">Save</button>
+            <button onclick="cancelProfile()" aria-label="Cancel Profile Changes">Cancel</button>
+        </div>
 
-    <div id="gameInfo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); color:white; z-index:1000;">
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); padding:20px; background-color:#333; border-radius:10px;">
+        <!-- Manage Sounds -->
+        <div id="manageSounds" class="section hidden" aria-label="Manage Sounds and Effects">
+            <button class="navigate-up focusable" onclick="backToSettings()" aria-label="Navigate Back to Settings">⬅</button>
+            <h2>Manage Sounds and Effects</h2>
+            <div id="soundOptions"></div>
+            <button onclick="saveSounds()" aria-label="Save Sound Changes">Save</button>
+            <button onclick="cancelSounds()" aria-label="Cancel Sound Changes">Cancel</button>
+        </div>
+
+        <!-- Custom Commentary -->
+        <div id="customCommentary" class="section hidden" aria-label="Edit Custom Commentary">
+            <button class="navigate-up focusable" onclick="backToSettings()" aria-label="Navigate Back to Settings">⬅</button>
+            <h2>Edit Custom Commentary</h2>
+            <div id="commentaryOptions"></div>
+            <button onclick="saveCommentary()" aria-label="Save Commentary">Save</button>
+            <button onclick="cancelCommentary()" aria-label="Cancel Commentary Changes">Cancel</button>
+        </div>
+
+        <!-- TTS Voice -->
+        <div id="ttsVoice" class="section hidden" aria-label="Change TTS Voice">
+            <button class="navigate-up focusable" onclick="backToSettings()" aria-label="Navigate Back to Settings">⬅</button>
+            <h2>Change TTS Voice</h2>
+            <label>Voice:
+                <select id="ttsVoiceSelect" aria-label="Select TTS Voice"></select>
+            </label>
+            <button onclick="saveTtsVoice()" aria-label="Save TTS Voice">Save</button>
+            <button onclick="cancelTtsVoice()" aria-label="Cancel TTS Voice Changes">Cancel</button>
+        </div>
+
+        <!-- Game Area -->
+        <div id="gameArea" class="section hidden" aria-label="Game Area" aria-live="polite">
+            <img id="gameProfilePhoto" style="max-width: 50px; border-radius: 50%; display: none;" alt="Player Profile Photo">
+            <div id="gameStatus">Game ready. Your position: 1</div>
+            <div id="botStatus">Bot's position: 1</div>
+            <button id="rollDiceButton" onclick="rollDice()" aria-label="Roll Dice">Roll Dice</button>
+            <div id="dice" aria-label="Dice Result"></div>
+            <button onclick="resetGame()" aria-label="Reset Game">Reset Game</button>
+        </div>
+
+        <!-- Game Info -->
+        <div id="gameInfo" class="section hidden" aria-label="Game Information">
+            <button class="navigate-up focusable" onclick="backToMoreOptions()" aria-label="Navigate Back to More Options">⬅</button>
             <h2>Game Information</h2>
-            <p>Snakes and Ladders positions:</p>
-            <pre id="snakesLaddersInfo"></pre>
-            <button onclick="hideGameInfo()">Close</button>
+            <div id="snakesLaddersInfo"></div>
         </div>
+
+        <!-- Copyright -->
+        <div id="copyright" class="section hidden" aria-label="Copyright Details">
+            <button class="navigate-up focusable" onclick="backToMoreOptions()" aria-label="Navigate Back to More Options">⬅</button>
+            <h2>Copyright Details</h2>
+            <div id="copyrightText"></div>
+        </div>
+
+        <!-- Profile -->
+        <div id="profile" class="section hidden" aria-label="User Profile">
+            <button class="navigate-up focusable" onclick="backToMoreOptions()" aria-label="Navigate Back to More Options">⬅</button>
+            <h2>User Profile</h2>
+            <div id="profileDetails"></div>
+        </div>
+
+        <!-- Win/Lose Messages -->
+        <div id="winMessage" class="win-message hidden" aria-label="You Won">Yay, you’ve triumphed in this game!</div>
+        <div id="loseMessage" class="lose-message hidden" aria-label="Bot Won">Gosh, you didn’t quite make it this time, but the bot did! No sweat, let's give it another shot.</div>
     </div>
 
+    <!-- Audio Elements -->
     <audio id="backgroundMusic" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Bgm.mp3" preload="auto" loop></audio>
     <audio id="diceSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3" preload="auto"></audio>
-    <audio id="moveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+    <audio id="moveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3" preload="auto"></audio>
     <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/winsound.mp3" preload="auto"></audio>
-    <audio id="botMoveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3"></audio>
+    <audio id="botMoveSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3" preload="auto"></audio>
     <audio id="botWinSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3" preload="auto"></audio>
-    <audio id="turnSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3"></audio>
+    <audio id="turnSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3" preload="auto"></audio>
     <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/preset.mp3" loop preload="auto"></audio>
-    <audio id="ladderSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3"></audio>
-    <audio id="snakeBiteSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3"></audio>
+    <audio id="ladderSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3" preload="auto"></audio>
+    <audio id="snakeBiteSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3" preload="auto"></audio>
     <audio id="playerDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound1.mp3" preload="auto"></audio>
     <audio id="playerDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound2.mp3" preload="auto"></audio>
-    <audio id="playerDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3"></audio>
-    <audio id="playerDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3"></audio>
-    <audio id="playerDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3"></audio>
-    <audio id="playerDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3"></audio>
+    <audio id="playerDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3" preload="auto"></audio>
+    <audio id="playerDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3" preload="auto"></audio>
+    <audio id="playerDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3" preload="auto"></audio>
+    <audio id="playerDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3" preload="auto"></audio>
     <audio id="botDice1" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound7.mp3" preload="auto"></audio>
     <audio id="botDice2" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound8.mp3" preload="auto"></audio>
-    <audio id="botDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3"></audio>
-    <audio id="botDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3"></audio>
-    <audio id="botDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3"></audio>
-    <audio id="botDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3"></audio>
+    <audio id="botDice3" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3" preload="auto"></audio>
+    <audio id="botDice4" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3" preload="auto"></audio>
+    <audio id="botDice5" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3" preload="auto"></audio>
+    <audio id="botDice6" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3" preload="auto"></audio>
     <audio id="ladderHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/ladder_hindi.mp3" preload="auto"></audio>
-    <audio id="snakeBiteHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3"></audio>
-    <audio id="winHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3"></audio>
-    <audio id="botWinHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3"></audio>
+    <audio id="snakeBiteHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3" preload="auto"></audio>
+    <audio id="winHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3" preload="auto"></audio>
+    <audio id="botWinHindi" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3" preload="auto"></audio>
 
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script>
-        let position = 1;
-        let botPosition = 1;
-        let isPlayerTurn = true;
-        let gameOver = false;
-        let backgroundMusic;
-        let ttsQueue = [];
-        let isTtsSpeaking = false;
-        let resetSound;
-        let rollDiceButton = document.getElementById("rollDiceButton");
-        let canRollDice = false;
-        let botMoveTimeout;
-        let gameStarted = false;
-        let currentLanguage = 'en';
-        let playerName = '';
-        let rollTimeout;
-        let hasRolled = false; // Track if player has rolled in this turn
-
-        const snakesAndLadders = {
-            2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 78: 98, 87: 94,
-            16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 92: 88, 95: 75, 99: 80
+        // Game State
+        let position = 1, botPosition = 1, isPlayerTurn = true, gameOver = false, canRollDice = false, hasRolled = false;
+        let backgroundMusic, resetSound, rollDiceButton = document.getElementById("rollDiceButton"), botMoveTimeout, gameStarted = false;
+        let currentLanguage = 'en', playerName = '', rollTimeout;
+        let settings = JSON.parse(localStorage.getItem('settings')) || {
+            language: 'en', darkTheme: false, bgMusic: true, bgMusicVolume: 10, presetVolume: 10, effectsVolume: 100, commentary: true, ttsVoice: 'Brian'
         };
+        let profile = JSON.parse(localStorage.getItem('profile')) || { username: '', photo: '', wins: 0, botWins: 0, ladders: 0, snakes: 0 };
+        let sounds = JSON.parse(localStorage.getItem('sounds')) || {
+            diceSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3',
+            moveSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3',
+            winSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/winsound.mp3',
+            botMoveSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3',
+            botWinSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3',
+            turnSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3',
+            ladderSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3',
+            snakeBiteSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3',
+            playerDice1: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound1.mp3',
+            playerDice2: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound2.mp3',
+            playerDice3: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3',
+            playerDice4: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3',
+            playerDice5: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3',
+            playerDice6: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3',
+            botDice1: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound7.mp3',
+            botDice2: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound8.mp3',
+            botDice3: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3',
+            botDice4: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3',
+            botDice5: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3',
+            botDice6: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3',
+            ladderHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/ladder_hindi.mp3',
+            snakeBiteHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3',
+            winHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3',
+            botWinHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3'
+        };
+        let soundToggles = JSON.parse(localStorage.getItem('soundToggles')) || {
+            diceSound: true, moveSound: true, winSound: true, botMoveSound: true, botWinSound: true, turnSound: true,
+            ladderSound: true, snakeBiteSound: true, playerDice1: true, playerDice2: true, playerDice3: true,
+            playerDice4: true, playerDice5: true, playerDice6: true, botDice1: true, botDice2: true, botDice3: true,
+            botDice4: true, botDice5: true, botDice6: true, ladderHindi: true, snakeBiteHindi: true, winHindi: true,
+            botWinHindi: true
+        };
+        let customCommentary = JSON.parse(localStorage.getItem('commentary')) || {};
+        let ttsQueue = [], isTtsSpeaking = false;
 
-        const translations = {
+        const snakesAndLadders = { 2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 78: 98, 87: 94, 16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 92: 88, 95: 75, 99: 80 };
+
+        const content = {
             en: {
-                gameReady: "Game ready. ",
-                botLocation: "Bot's position: ",
-                roll: " rolled ",
-                rolled: "rolled",
-                youAreAt: "'s position is ",
-                botPositionIs: "Bot position is",
-                wouldGoOver: " would go over, so they stay at ",
-                climbedLadder: " climbed a ladder and is now at ",
-                snakeBite: " was bitten by a snake and slid down to ",
-                yourPosition: "'s position is ",
-                botRolled: "The bot rolled ",
-                botWouldGoOver: "The bot would go over, so it stays at ",
-                botClimbedLadder: "The bot climbed a ladder, reaching ",
-                botSnakeBite: "The bot was bitten by a snake and slid down to ",
-                nowYourTurn: ", it's your turn! Please roll the dice.",
-                winMessage: "Congratulations! You won!",
-                loseMessage: "The bot won! Better luck next time.",
-                resetMessage: "Game has been reset. ",
-                snakesLaddersInfo: "Snakes and Ladders Information:\n\n",
-                ladder: "ladder",
-                snake: "snake",
-                climbsUp: "climbs up to",
-                bitesAndSlidesDown: "bites and slides down to",
-                startGameMessage: "Welcome to the game, ",
-                editName: "Edit Name",
-                saveName: "Save Name",
-                playerNameLabel: "Player Name:",
-                playerNamePlaceholder: "Enter your name",
-                selectLanguageLabel: "Select Language:",
-                startTheGame: "Start Game",
-                positionIs: "'s position is ",
-                yourTurn: "'s turn",
-                timeUp: ", time's up! Bot's turn now."
+                translations: {
+                    gameReady: "Game ready. ",
+                    botLocation: "Bot's position: ",
+                    roll: " rolled ",
+                    rolled: "rolled",
+                    youAreAt: "'s position is ",
+                    botPositionIs: "Bot position is",
+                    wouldGoOver: " would go over, so they stay at ",
+                    climbedLadder: " climbed a ladder and is now at ",
+                    snakeBite: " was bitten by a snake and slid down to ",
+                    yourPosition: "'s position is ",
+                    botRolled: "The bot rolled ",
+                    botWouldGoOver: "The bot would go over, so it stays at ",
+                    botClimbedLadder: "The bot climbed a ladder, reaching ",
+                    botSnakeBite: "The bot was bitten by a snake and slid down to ",
+                    nowYourTurn: ", it's your turn! Please roll the dice.",
+                    winMessage: "Congratulations! You won!",
+                    loseMessage: "The bot won! Better luck next time.",
+                    resetMessage: "Game has been reset. ",
+                    startGameMessage: "Welcome to the game, ",
+                    timeUp: ", time's up! Bot's turn now."
+                },
+                howToPlay: [
+                    "Swipe up to start the game.",
+                    "Try to roll the dice within 5 seconds after you listen to the instruction to roll.",
+                    "Swipe right to roll the dice and move your piece on Android.",
+                    "Swipe left to reset the game.",
+                    "The first player to reach position 100 triumphs in the game.",
+                    "The game is turn-based, so wait for your turn after rolling.",
+                    "You have 7 seconds to roll the dice after your turn begins."
+                ],
+                gameInfo: Object.entries(snakesAndLadders).map(([start, end]) => 
+                    `Position ${start} ${end > start ? 'has a ladder to' : 'has a snake to'} ${end}`
+                ),
+                copyright: [
+                    "© 2025 Snakes and Ladders by Interesting Tech for VI, created by Kuldeep Behera in collaboration with Sandeep Ghimire, founder of KTM.",
+                    "All rights reserved.",
+                    "This game, including its code, design, audio, and visual elements, is the intellectual property of Interesting Tech for VI and KTM."
+                ]
             },
             hi: {
-                gameReady: "गेम तैयार है। ",
-                botLocation: "बॉट की स्थिति: ",
-                roll: " ने फेंका ",
-                rolled: "ने फेंका",
-                youAreAt: " की स्थिति ",
-                botPositionIs: "बॉट है ",
-                wouldGoOver: " आगे निकल जाता, इसलिए वह वहीं पर ही रहता है ",
-                climbedLadder: " ने एक सीढ़ी चढ़ी और अब  है ",
-                snakeBite: " को सांप ने काट लिया और वह  फिसल गया ",
-                yourPosition: " की स्थिति ",
-                botRolled: "बॉट ने फेंका ",
-                botWouldGoOver: "बॉट आगे निकल जाता, इसलिए वह वहीं पर ही रहता है ",
-                botClimbedLadder: "बॉट ने एक सीढ़ी चढ़ी और  पहुंच गया ",
-                botSnakeBite: "बॉट को सांप ने काट लिया और वह  फिसल गया ",
-                nowYourTurn: ", अब आपकी बारी है! कृपया डाइस रोल करें।",
-                winMessage: "मुबारक हो! आप जीत गए!",
-                loseMessage: "बॉट जीत गया! अगली बार बेहतर किस्मत।",
-                resetMessage: "गेम रीसेट हो गया है। ",
-                snakesLaddersInfo: "सांप और सीढ़ी जानकारी:\n\n",
-                ladder: "सीढ़ी",
-                snake: "सांप",
-                climbsUp: "ऊपर चढ़ता है",
-                bitesAndSlidesDown: "काटता है और नीचे सरकता है",
-                startGameMessage: "गेम में आपका स्वागत है, ",
-                editName: "नाम बदलें",
-                saveName: "नाम सुरक्षित करें",
-                playerNameLabel: "खिलाड़ी का नाम:",
-                playerNamePlaceholder: "अपना नाम दर्ज करें",
-                selectLanguageLabel: "भाषा चुनें:",
-                startTheGame: "खेल शुरू करें",
-                positionIs: " की स्थिति ",
-                yourTurn: " की बारी",
-                timeUp: ", समय समाप्त! अब बॉट की बारी।"
+                translations: {
+                    gameReady: "गेम तैयार है। ",
+                    botLocation: "बॉट की स्थिति: ",
+                    roll: " ने फेंका ",
+                    rolled: "ने फेंका",
+                    youAreAt: " की स्थिति है ",
+                    botPositionIs: "बॉट की स्थिति है ",
+                    wouldGoOver: " आगे निकल जाता, इसलिए वह वहीं पर रहता है ",
+                    climbedLadder: " ने एक सीढ़ी चढ़ी और अब वह है ",
+                    snakeBite: " को सांप ने काट लिया और वह नीचे फिसल गया ",
+                    yourPosition: " की स्थिति है ",
+                    botRolled: "बॉट ने फेंका ",
+                    botWouldGoOver: "बॉट आगे निकल जाता, इसलिए वह वहीं पर रहता है ",
+                    botClimbedLadder: "बॉट ने एक सीढ़ी चढ़ी और वह पहुंच गया ",
+                    botSnakeBite: "बॉट को सांप ने काट लिया और वह नीचे फिसल गया ",
+                    nowYourTurn: " अब आपकी बारी है! कृपया डाइस फेंकें।",
+                    winMessage: "बधाई हो! आप जीत गए!",
+                    loseMessage: "बॉट जीत गया! अगली बार बेहतर किस्मत।",
+                    resetMessage: "गेम रीसेट हो गया है। ",
+                    startGameMessage: "गेम में आपका स्वागत है, ",
+                    timeUp: " समय समाप्त हो गया! अब बॉट की बारी।"
+                },
+                howToPlay: [
+                    "गेम शुरू करने के लिए ऊपर स्वाइप करें।",
+                    "रोल करने की सूचना सुनने के 5 सेकंड के भीतर डाइस रोल करने की कोशिश करें।",
+                    "एंड्रॉइड पर डाइस रोल करने और अपनी चाल चलने के लिए दाएं स्वाइप करें।",
+                    "गेम रीसेट करने के लिए बाएं स्वाइप करें।",
+                    "गेम में 100वें स्थान पर पहुंचने वाला पहला खिलाड़ी जीतता है।",
+                    "गेम बारी-बारी से खेला जाता है, इसलिए डाइस रोल करने के बाद अपनी बारी का इंतजार करें।",
+                    "आपकी बारी शुरू होने के बाद आपके पास डाइस रोल करने के लिए 7 सेकंड हैं।"
+                ],
+                gameInfo: Object.entries(snakesAndLadders).map(([start, end]) => 
+                    `स्थान ${start} ${end > start ? 'सीढ़ी से जाता है' : 'सांप से जाता है'} ${end}`
+                ),
+                copyright: [
+                    "© 2025 साँप और सीढ़ी, Interesting Tech for VI द्वारा निर्मित, कुलदीप बेहरा द्वारा बनाया गया और KTM के संस्थापक संदीप घिमिरे के सहयोग से।",
+                    "सभी अधिकार सुरक्षित।",
+                    "यह गेम, इसके कोड, डिज़ाइन, ऑडियो और दृश्य तत्व Interesting Tech for VI और KTM की बौद्धिक संपत्ति हैं।"
+                ]
             }
         };
 
+        // Audio Functions
+        function playSound(soundId) {
+            if (soundToggles[soundId]) {
+                const sound = document.getElementById(soundId);
+                sound.volume = settings.effectsVolume / 100;
+                sound.play();
+            }
+        }
+
         function playDiceSound(dice, isPlayer) {
             const soundId = isPlayer ? `playerDice${dice}` : `botDice${dice}`;
-            const sound = document.getElementById(soundId);
-            sound.play();
+            playSound(soundId);
         }
 
         function speakText(text, callback) {
+            if (!settings.commentary) { if (callback) callback(); return; }
             ttsQueue.push({ text, callback });
             if (!isTtsSpeaking) processTtsQueue();
         }
@@ -271,9 +492,9 @@
             }
             isTtsSpeaking = true;
             const { text, callback } = ttsQueue.shift();
-            const voice = currentLanguage === 'hi' ? 'Hemant' : 'Brian';
-            const ttsApiUrl = `https://advanced-tts.darkhacker7301.workers.dev/?message=${encodeURIComponent(text)}&voice=${voice}`;
+            const ttsApiUrl = `https://advanced-tts.darkhacker7301.workers.dev/?message=${encodeURIComponent(text)}&voice=${settings.ttsVoice}`;
             const audio = new Audio(ttsApiUrl);
+            audio.volume = settings.effectsVolume / 100;
             audio.play();
             audio.onended = () => {
                 setTimeout(() => {
@@ -283,70 +504,56 @@
             };
         }
 
-        function setLanguage() {
-            currentLanguage = document.getElementById("language").value;
-            updateText();
-        }
-
+        // Language and UI Updates
         function updateText() {
-            const lang = translations[currentLanguage];
-            document.getElementById("rollDiceButton").textContent = currentLanguage === 'en' ? "Roll Dice" : "डाइस रोल करें";
+            const lang = content[currentLanguage].translations;
+            document.getElementById("rollDiceButton").textContent = "Roll Dice"; // Always English
             document.getElementById("gameStatus").textContent = `${lang.gameReady}${playerName}${lang.youAreAt}${position}`;
             document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(1)").textContent = currentLanguage === 'en' ? "How to Play:" : "कैसे खेलें:";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(2)").textContent = currentLanguage === 'en' ? "1. Swipe up to start the game." : "1. गेम शुरू करने के लिए ऊपर स्वाइप करें।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(3)").textContent = currentLanguage === 'en' ? "2. Press 'R' to roll the dice and move your piece on Windows." : "2. विंडोज पर डाइस रोल करने और अपनी चाल चलने के लिए 'R' दबाएं।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(4)").textContent = currentLanguage === 'en' ? "3. Swipe right to roll the dice and move your piece on Android." : "3. एंड्रॉइड पर डाइस रोल करने और अपनी चाल चलने के लिए दाएं स्वाइप करें।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(5)").textContent = currentLanguage === 'en' ? "4. Swipe left to reset the game." : "4. गेम रीसेट करने के लिए बाएं स्वाइप करें।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(6)").textContent = currentLanguage === 'en' ? "5. The first player to reach position 100 triumphs in the game." : "5. गेम में 100वें स्थान पर पहुंचने वाला पहला खिलाड़ी जीतता है।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(7)").textContent = currentLanguage === 'en' ? "6. The game is turn-based, so wait for your turn after rolling." : "6. गेम बारी-बारी से खेला जाता है, इसलिए डाइस रोल करने के बाद अपनी बारी का इंतजार करें।";
-            document.getElementById("mainMenu").querySelector("#instructions p:nth-child(8)").textContent = currentLanguage === 'en' ? "7. You have 7 seconds to roll the dice after your turn begins." : "7. आपकी बारी शुरू होने के बाद आपके पास डाइस रोल करने के लिए 7 सेकंड हैं।";
-            document.getElementById("gameInfo").querySelector("h2").textContent = currentLanguage === 'en' ? "Game Information" : "खेल की जानकारी";
-            document.getElementById("gameInfo").querySelector("p").textContent = currentLanguage === 'en' ? "Snakes and Ladders positions:" : "सांप और सीढ़ी की स्थिति:";
-            document.getElementById("languageSelection").querySelector("label").textContent = lang.selectLanguageLabel;
-            document.getElementById("nameInputArea").querySelector("label").textContent = lang.playerNameLabel;
-            document.getElementById("nameInputArea").querySelector("#playerName").placeholder = lang.playerNamePlaceholder;
-            document.getElementById("nameInputArea").querySelector("button:nth-child(2)").textContent = lang.saveName;
-            document.getElementById("mainMenu").querySelector("button").textContent = lang.startTheGame;
-            document.getElementById("gameInfo").querySelector("button").textContent = currentLanguage === 'en' ? "Close" : "बंद करें";
         }
 
+        // Game Logic
         function startGame() {
-            playerName = localStorage.getItem('playerName') || '';
+            playerName = profile.username || localStorage.getItem('playerName') || '';
             if (!playerName) {
-                alert(currentLanguage === 'en' ? "Please enter your name first!" : "कृपया पहले अपना नाम दर्ज करें!");
+                alert(currentLanguage === 'en' ? "Please set your username in Settings > Profile Settings!" : "कृपया सेटिंग्स > प्रोफाइल सेटिंग्स में अपना उपयोगकर्ता नाम सेट करें!");
+                showSettings();
+                showProfileSettings();
                 return;
             }
-            document.getElementById("mainMenu").style.display = "none";
-            document.getElementById("gameArea").style.display = "block";
+            showSection('gameArea');
             document.getElementById("gameArea").setAttribute("aria-live", "off");
             document.getElementById("gameArea").setAttribute("aria-busy", "true");
             document.getElementById("gameArea").setAttribute("aria-modal", "true");
 
             backgroundMusic = document.getElementById("backgroundMusic");
             backgroundMusic.loop = true;
-            backgroundMusic.play();
+            backgroundMusic.volume = settings.bgMusicVolume / 100;
+            if (settings.bgMusic) backgroundMusic.play();
 
             resetSound = document.getElementById("resetSound");
             resetSound.loop = true;
-            resetSound.play();
+            resetSound.volume = settings.presetVolume / 100;
+            if (settings.bgMusic) resetSound.play();
 
             resetGame();
-            const lang = translations[currentLanguage];
-            speakText(`${lang.startGameMessage}${playerName}! ${currentLanguage === 'en' ? "Please roll the dice." : "कृपया डाइस रोल करें।"}`, () => {
+            const lang = content[currentLanguage].translations;
+            speakText(`${lang.startGameMessage}${playerName}! ${currentLanguage === 'en' ? "Please roll the dice." : "कृपया डाइस फेंकें।"}`, () => {
                 enableRollDice();
                 canRollDice = true;
                 startRollTimer();
             });
 
             gameStarted = true;
+            document.getElementById('gameProfilePhoto').src = profile.photo || '';
+            document.getElementById('gameProfilePhoto').style.display = profile.photo ? 'block' : 'none';
         }
 
         function startRollTimer() {
             clearTimeout(rollTimeout);
             rollTimeout = setTimeout(() => {
                 if (isPlayerTurn && !gameOver && !hasRolled) {
-                    const lang = translations[currentLanguage];
+                    const lang = content[currentLanguage].translations;
                     disableRollDice();
                     canRollDice = false;
                     speakText(`${playerName}${lang.timeUp}`, () => {
@@ -355,21 +562,20 @@
                         botMoveTimeout = setTimeout(botTurn, 500);
                     });
                 }
-            }, 7000); // 7 seconds
+            }, 7000);
         }
 
         function rollDice() {
             if (gameOver || !isPlayerTurn || !canRollDice || hasRolled) return;
-
-            clearTimeout(rollTimeout); // Clear the timer when the player rolls
+            clearTimeout(rollTimeout);
             disableRollDice();
             canRollDice = false;
-            hasRolled = true; // Mark that the player has rolled
+            hasRolled = true;
 
             const dice = Math.floor(Math.random() * 6) + 1;
             playDiceSound(dice, true);
             let newPosition = position + dice;
-            const lang = translations[currentLanguage];
+            const lang = content[currentLanguage].translations;
 
             let statusText = `${playerName}${lang.roll}${dice}.`;
             document.getElementById("gameStatus").textContent = statusText;
@@ -391,14 +597,16 @@
                     statusText = `${playerName}${lang.climbedLadder}${position}.`;
                     document.getElementById("gameStatus").textContent = statusText;
                     speakText(statusText);
-                    document.getElementById("ladderSound").play();
-                    if (currentLanguage === 'hi') document.getElementById("ladderHindi").play();
+                    playSound("ladderSound");
+                    if (currentLanguage === 'hi') playSound("ladderHindi");
+                    profile.ladders++;
                 } else {
                     statusText = `${playerName}${lang.snakeBite}${position}.`;
                     document.getElementById("gameStatus").textContent = statusText;
                     speakText(statusText);
-                    document.getElementById("snakeBiteSound").play();
-                    if (currentLanguage === 'hi') document.getElementById("snakeBiteHindi").play();
+                    playSound("snakeBiteSound");
+                    if (currentLanguage === 'hi') playSound("snakeBiteHindi");
+                    profile.snakes++;
                 }
             }
 
@@ -407,25 +615,24 @@
             if (position === 100) {
                 handleWin();
             } else {
-                statusText = `${playerName}${lang.positionIs}${position}`;
+                statusText = `${playerName}${lang.yourPosition}${position}`;
                 document.getElementById("gameStatus").textContent = statusText;
                 speakText(statusText, () => {
-                    document.getElementById("moveSound").play();
+                    playSound("moveSound");
                     isPlayerTurn = false;
-                    botMoveTimeout = setTimeout(botTurn, 500); // Reduced delay
+                    botMoveTimeout = setTimeout(botTurn, 500);
                 });
             }
         }
 
         function botTurn() {
             if (gameOver) return;
-
-            clearTimeout(botMoveTimeout); // Ensure no duplicate bot turns
+            clearTimeout(botMoveTimeout);
 
             const botDice = Math.floor(Math.random() * 6) + 1;
             playDiceSound(botDice, false);
             let newBotPosition = botPosition + botDice;
-            const lang = translations[currentLanguage];
+            const lang = content[currentLanguage].translations;
 
             let statusText = `${lang.botRolled}${botDice}.`;
             document.getElementById("botStatus").textContent = statusText;
@@ -447,12 +654,12 @@
                     statusText = `${lang.botClimbedLadder}${botPosition}.`;
                     document.getElementById("botStatus").textContent = statusText;
                     speakText(statusText);
-                    document.getElementById("ladderSound").play();
+                    playSound("ladderSound");
                 } else {
                     statusText = `${lang.botSnakeBite}${botPosition}.`;
                     document.getElementById("botStatus").textContent = statusText;
                     speakText(statusText);
-                    document.getElementById("snakeBiteSound").play();
+                    playSound("snakeBiteSound");
                 }
             }
 
@@ -460,7 +667,7 @@
             statusText = `${lang.botLocation}${botPosition}`;
             document.getElementById("botStatus").textContent = statusText;
             speakText(statusText, () => {
-                document.getElementById("botMoveSound").play();
+                playSound("botMoveSound");
 
                 if (botPosition === 100) {
                     handleLose();
@@ -468,9 +675,9 @@
                     const turnText = `${playerName}${lang.nowYourTurn}`;
                     document.getElementById("gameStatus").textContent = turnText;
                     speakText(turnText, () => {
-                        document.getElementById("turnSound").play();
+                        playSound("turnSound");
                         isPlayerTurn = true;
-                        hasRolled = false; // Reset for next player turn
+                        hasRolled = false;
                         enableRollDice();
                         canRollDice = true;
                         startRollTimer();
@@ -484,21 +691,26 @@
             clearTimeout(botMoveTimeout);
             clearTimeout(rollTimeout);
             canRollDice = false;
-            const lang = translations[currentLanguage];
+            const lang = content[currentLanguage].translations;
             const winText = `${currentLanguage === 'en' ? "Congratulations " : "बधाई "}${playerName}${currentLanguage === 'en' ? "! You won!" : "! आप जीत गए!"}`;
             document.getElementById("gameStatus").textContent = winText;
             speakText(lang.winMessage);
-            document.getElementById("winSound").play();
-            if (currentLanguage === 'hi') document.getElementById("winHindi").play();
+            playSound("winSound");
+            if (currentLanguage === 'hi') playSound("winHindi");
 
-            resetSound.pause();
-            resetSound.currentTime = 0;
+            if (settings.bgMusic) {
+                resetSound.pause();
+                resetSound.currentTime = 0;
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+            }
 
             document.getElementById("gameArea").removeAttribute("aria-live");
             document.getElementById("gameArea").removeAttribute("aria-busy");
             document.getElementById("gameArea").removeAttribute("aria-modal");
-            document.getElementById("gameArea").style.display = "none";
-            document.getElementById("winMessage").style.display = "block";
+            showSection('winMessage');
+            profile.wins++;
+            saveProfileData();
         }
 
         function handleLose() {
@@ -506,23 +718,28 @@
             clearTimeout(botMoveTimeout);
             clearTimeout(rollTimeout);
             canRollDice = false;
-            const lang = translations[currentLanguage];
+            const lang = content[currentLanguage].translations;
             const loseText = lang.loseMessage;
             document.getElementById("botStatus").textContent = loseText;
 
-            resetSound.pause();
-            resetSound.currentTime = 0;
+            if (settings.bgMusic) {
+                resetSound.pause();
+                resetSound.currentTime = 0;
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+            }
 
             speakText(loseText, () => {
-                document.getElementById("botWinSound").play();
-                if (currentLanguage === 'hi') document.getElementById("botWinHindi").play();
+                playSound("botWinSound");
+                if (currentLanguage === 'hi') playSound("botWinHindi");
             });
 
             document.getElementById("gameArea").removeAttribute("aria-live");
             document.getElementById("gameArea").removeAttribute("aria-busy");
             document.getElementById("gameArea").removeAttribute("aria-modal");
-            document.getElementById("gameArea").style.display = "none";
-            document.getElementById("loseMessage").style.display = "block";
+            showSection('loseMessage');
+            profile.botWins++;
+            saveProfileData();
         }
 
         function resetGame() {
@@ -536,7 +753,7 @@
             clearTimeout(botMoveTimeout);
             clearTimeout(rollTimeout);
 
-            const lang = translations[currentLanguage];
+            const lang = content[currentLanguage].translations;
             document.getElementById("gameStatus").textContent = `${lang.resetMessage}${playerName}${lang.youAreAt}${position}`;
             document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
             document.getElementById("dice").textContent = "";
@@ -551,9 +768,11 @@
                 });
             });
 
-            document.getElementById("winMessage").style.display = "none";
-            document.getElementById("loseMessage").style.display = "none";
-            document.getElementById("gameArea").style.display = "block";
+            showSection('gameArea');
+            if (settings.bgMusic) {
+                backgroundMusic.play();
+                resetSound.play();
+            }
         }
 
         function enableRollDice() {
@@ -563,94 +782,359 @@
 
         function disableRollDice() {
             rollDiceButton.disabled = true;
-            rollDiceButton.style.display = "none";
+            rollDiceButton.style.display = "inline-block";
         }
 
-        function showGameInfo() {
-            const lang = translations[currentLanguage];
-            let infoText = lang.snakesLaddersInfo;
-            for (const [start, end] of Object.entries(snakesAndLadders)) {
-                const type = currentLanguage === 'en' ? lang.ladder : lang.snake;
-                const action = currentLanguage === 'en' ? lang.climbsUp : lang.bitesAndSlidesDown;
-                infoText += `स्थान ${start}: ${type} ${action} ${end}\n`;
-            }
-            document.getElementById("snakesLaddersInfo").textContent = infoText;
-            document.getElementById("gameInfo").style.display = "block";
+        // Navigation Functions
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).focus();
+        }
+        function showMoreOptions() { showSection('moreOptions'); }
+        function backToMain() { showSection('mainScreen'); }
+        function backToMoreOptions() { showSection('moreOptions'); }
+        function showHowToPlay() { 
+            showSection('howToPlay'); 
+            const container = document.getElementById('howToPlayText');
+            container.innerHTML = content[currentLanguage].howToPlay.map(line => `<p tabindex="0">${line}</p>`).join('');
+        }
+        function showSettings() { showSection('settings'); loadSettings(); }
+        function backToSettings() { showSection('settings'); }
+        function showGameInfo() { 
+            showSection('gameInfo'); 
+            const container = document.getElementById('snakesLaddersInfo');
+            container.innerHTML = content[currentLanguage].gameInfo.map(line => `<p tabindex="0">${line}</p>`).join('');
+        }
+        function showCopyright() { 
+            showSection('copyright'); 
+            const container = document.getElementById('copyrightText');
+            container.innerHTML = content[currentLanguage].copyright.map(line => `<p tabindex="0">${line}</p>`).join('');
+        }
+        function showProfile() { showSection('profile'); updateProfile(); }
+
+        // Settings Functions
+        function loadSettings() {
+            document.getElementById("gameLanguage").value = settings.language;
+            document.getElementById("darkTheme").checked = settings.darkTheme;
+            document.getElementById("bgMusicToggle").checked = settings.bgMusic;
+            document.getElementById("bgMusicVolume").value = settings.bgMusicVolume;
+            document.getElementById("presetVolume").value = settings.presetVolume;
+            document.getElementById("effectsVolume").value = settings.effectsVolume;
+            document.getElementById("commentaryToggle").checked = settings.commentary;
         }
 
-        function hideGameInfo() {
-            document.getElementById("gameInfo").style.display = "none";
+        function showProfileSettings() {
+            showSection('profileSettings');
+            document.getElementById('username').value = profile.username;
+            document.getElementById('profilePreview').src = profile.photo || '';
+            document.getElementById('profilePreview').style.display = profile.photo ? 'block' : 'none';
         }
 
-        function savePlayerName() {
-            const name = document.getElementById("playerName").value;
-            if (name) {
-                localStorage.setItem('playerName', name);
-                playerName = name;
-                document.getElementById("playerName").disabled = true;
-                document.getElementById("editNameButton").style.display = "inline-block";
-                document.querySelector("#nameInputArea > button:nth-child(2)").style.display = 'none';
-                updateText();
+        function saveProfile() {
+            profile.username = document.getElementById("username").value;
+            playerName = profile.username;
+            localStorage.setItem('playerName', playerName);
+            const file = document.getElementById('profilePhoto').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => { profile.photo = reader.result; saveProfileData(); backToSettings(); };
+                reader.readAsDataURL(file);
             } else {
-                alert(currentLanguage === 'en' ? "Please enter a valid name!" : "कृपया एक मान्य नाम दर्ज करें!");
+                saveProfileData();
+                backToSettings();
+            }
+            updateText();
+        }
+
+        function cancelProfile() { backToSettings(); }
+
+        function showManageSounds() {
+            showSection('manageSounds');
+            const container = document.getElementById('soundOptions');
+            container.innerHTML = '';
+            for (const [key, url] of Object.entries(sounds)) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label>${key.replace(/([A-Z])/g, ' $1').trim()}:
+                        <input type="file" accept="audio/*" onchange="updateSound('${key}', this)" aria-label="Upload ${key} Sound">
+                        <button onclick="previewSound('${url}')" aria-label="Preview ${key} Sound">Preview</button>
+                        ${url !== defaultSounds[key] ? `<button onclick="removeSound('${key}')" aria-label="Remove ${key} Sound">Remove</button>` : ''}
+                        <input type="checkbox" ${soundToggles[key] ? 'checked' : ''} onchange="toggleCustomSound('${key}', this.checked)" aria-label="Play ${key} Sound"> Play
+                    </label>`;
+                container.appendChild(div);
             }
         }
 
-        function editPlayerName() {
-            document.getElementById("playerName").disabled = false;
-            document.getElementById("editNameButton").style.display = "none";
-            document.querySelector("#nameInputArea > button:nth-child(2)").style.display = 'inline-block';
-            document.getElementById("playerName").focus();
+        const defaultSounds = {
+            diceSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3',
+            moveSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3',
+            winSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/winsound.mp3',
+            botMoveSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/role.mp3',
+            botWinSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Loose%20game.mp3',
+            turnSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/reset.mp3',
+            ladderSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/climb.mp3',
+            snakeBiteSound: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake-sound-effect.mp3',
+            playerDice1: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound1.mp3',
+            playerDice2: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound2.mp3',
+            playerDice3: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound3.mp3',
+            playerDice4: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound4.mp3',
+            playerDice5: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound5.mp3',
+            playerDice6: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound6.mp3',
+            botDice1: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound7.mp3',
+            botDice2: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound8.mp3',
+            botDice3: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound9.mp3',
+            botDice4: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound10.mp3',
+            botDice5: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound11.mp3',
+            botDice6: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/sound12.mp3',
+            ladderHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/ladder_hindi.mp3',
+            snakeBiteHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/snake_bite_hindi.mp3',
+            winHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/win_hindi.mp3',
+            botWinHindi: 'https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/bot_win_hindi.mp3'
+        };
+
+        function updateSound(key, input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => { 
+                    sounds[key] = reader.result; 
+                    document.getElementById(key).src = sounds[key];
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
-        window.onload = function () {
-            const sounds = document.querySelectorAll('audio');
-            sounds.forEach(sound => sound.load());
+        function previewSound(url) {
+            const audio = new Audio(url);
+            audio.volume = settings.effectsVolume / 100;
+            audio.play();
+        }
+
+        function removeSound(key) {
+            sounds[key] = defaultSounds[key];
+            document.getElementById(key).src = defaultSounds[key];
+            showManageSounds();
+        }
+
+        function toggleCustomSound(key, checked) {
+            soundToggles[key] = checked;
+            localStorage.setItem('soundToggles', JSON.stringify(soundToggles));
+        }
+
+        function saveSounds() {
+            localStorage.setItem('sounds', JSON.stringify(sounds));
+            localStorage.setItem('soundToggles', JSON.stringify(soundToggles));
+            backToSettings();
+        }
+
+        function cancelSounds() { backToSettings(); }
+
+        function showCustomCommentary() {
+            showSection('customCommentary');
+            const container = document.getElementById('commentaryOptions');
+            container.innerHTML = '';
+            for (const key in content[settings.language].translations) {
+                const input = document.createElement('textarea');
+                input.value = customCommentary[key] || content[settings.language].translations[key];
+                input.onchange = () => customCommentary[key] = input.value;
+                input.setAttribute('aria-label', `Edit ${key} Commentary`);
+                container.appendChild(document.createElement('label')).textContent = key;
+                container.appendChild(input);
+            }
+        }
+
+        function saveCommentary() {
+            localStorage.setItem('commentary', JSON.stringify(customCommentary));
+            backToSettings();
+        }
+
+        function cancelCommentary() { backToSettings(); }
+
+        function showTtsVoice() {
+            showSection('ttsVoice');
+            const select = document.getElementById('ttsVoiceSelect');
+            select.innerHTML = settings.language === 'en' ? `
+                <option value="Brian">Brian (US)</option>
+                <option value="Matthew">Matthew (US)</option>
+                <option value="Joanna">Joanna (US)</option>
+                <option value="Salli">Salli (US)</option>
+                <option value="Raveena">Raveena (Indian)</option>
+                <option value="Aditi">Aditi (Indian)</option>
+            ` : `
+                <option value="Hemant">Hemant (Indian)</option>
+                <option value="Aditi">Aditi (Indian)</option>
+                <option value="Kajal">Kajal (Indian)</option>
+                <option value="Naja">Naja (Indian)</option>
+            `;
+            select.value = settings.ttsVoice;
+        }
+
+        function saveTtsVoice() {
+            settings.ttsVoice = document.getElementById("ttsVoiceSelect").value;
+            saveSettingsData();
+            backToSettings();
+        }
+
+        function cancelTtsVoice() { backToSettings(); }
+
+        function changeLanguage() {
+            settings.language = document.getElementById("gameLanguage").value;
+            currentLanguage = settings.language;
+            updateText();
+            saveSettingsData();
+        }
+
+        function toggleDarkTheme() {
+            settings.darkTheme = document.getElementById("darkTheme").checked;
+            document.body.classList.toggle('dark-theme', settings.darkTheme);
+            saveSettingsData();
+        }
+
+        function toggleBgMusic() {
+            settings.bgMusic = document.getElementById("bgMusicToggle").checked;
+            if (backgroundMusic) {
+                if (settings.bgMusic) backgroundMusic.play();
+                else backgroundMusic.pause();
+            }
+            if (resetSound) {
+                if (settings.bgMusic) resetSound.play();
+                else resetSound.pause();
+            }
+            saveSettingsData();
+        }
+
+        function adjustBgMusicVolume() {
+            settings.bgMusicVolume = document.getElementById("bgMusicVolume").value;
+            if (backgroundMusic) backgroundMusic.volume = settings.bgMusicVolume / 100;
+            saveSettingsData();
+        }
+
+        function adjustPresetVolume() {
+            settings.presetVolume = document.getElementById("presetVolume").value;
+            if (resetSound) resetSound.volume = settings.presetVolume / 100;
+            saveSettingsData();
+        }
+
+        function adjustEffectsVolume() {
+            settings.effectsVolume = document.getElementById("effectsVolume").value;
+            document.querySelectorAll('audio:not(#backgroundMusic):not(#resetSound)').forEach(a => a.volume = settings.effectsVolume / 100);
+            saveSettingsData();
+        }
+
+        function toggleCommentary() {
+            settings.commentary = document.getElementById("commentaryToggle").checked;
+            saveSettingsData();
+        }
+
+        function saveSettings() {
+            saveSettingsData();
+            backToMoreOptions();
+        }
+
+        function cancelSettings() { backToMoreOptions(); }
+
+        function resetSettings() {
+            settings = { language: 'en', darkTheme: false, bgMusic: true, bgMusicVolume: 10, presetVolume: 10, effectsVolume: 100, commentary: true, ttsVoice: 'Brian' };
+            sounds = { ...defaultSounds };
+            soundToggles = {
+                diceSound: true, moveSound: true, winSound: true, botMoveSound: true, botWinSound: true, turnSound: true,
+                ladderSound: true, snakeBiteSound: true, playerDice1: true, playerDice2: true, playerDice3: true,
+                playerDice4: true, playerDice5: true, playerDice6: true, botDice1: true, botDice2: true, botDice3: true,
+                botDice4: true, botDice5: true, botDice6: true, ladderHindi: true, snakeBiteHindi: true, winHindi: true,
+                botWinHindi: true
+            };
+            customCommentary = {};
+            localStorage.setItem('settings', JSON.stringify(settings));
+            localStorage.setItem('sounds', JSON.stringify(sounds));
+            localStorage.setItem('soundToggles', JSON.stringify(soundToggles));
+            localStorage.setItem('commentary', JSON.stringify(customCommentary));
+            loadSettings();
+            updateUI();
+            if (backgroundMusic) {
+                backgroundMusic.volume = settings.bgMusicVolume / 100;
+                settings.bgMusic ? backgroundMusic.play() : backgroundMusic.pause();
+            }
+            if (resetSound) {
+                resetSound.volume = settings.presetVolume / 100;
+                settings.bgMusic ? resetSound.play() : resetSound.pause();
+            }
+            adjustEffectsVolume();
+        }
+
+        // Utility Functions
+        function updateProfile() {
+            document.getElementById('profileDetails').innerHTML = `
+                <img src="${profile.photo || ''}" style="max-width: 100px; border-radius: 50%; ${profile.photo ? '' : 'display: none;'}" alt="Profile Photo">
+                <p tabindex="0">Username: ${profile.username}</p>
+                <p tabindex="0">Player Wins: ${profile.wins}</p>
+                <p tabindex="0">Bot Wins: ${profile.botWins}</p>
+                <p tabindex="0">Ladders Climbed: ${profile.ladders}</p>
+                <p tabindex="0">Snakes Bitten: ${profile.snakes}</p>`;
+        }
+
+        function saveProfileData() { localStorage.setItem('profile', JSON.stringify(profile)); }
+        function saveSettingsData() { localStorage.setItem('settings', JSON.stringify(settings)); }
+
+        // Initialization
+        function updateUI() {
+            document.getElementById("rollDiceButton").textContent = "Roll Dice"; // Always English
+            toggleDarkTheme();
+            adjustBgMusicVolume();
+            adjustPresetVolume();
+            adjustEffectsVolume();
+        }
+
+        window.onload = () => {
+            updateUI();
+            const audioElements = document.querySelectorAll('audio');
+            audioElements.forEach(sound => {
+                sound.src = sounds[sound.id] || sound.src;
+                sound.load();
+            });
 
             resetSound = document.getElementById("resetSound");
-            resetSound.volume = 0.10;
             backgroundMusic = document.getElementById("backgroundMusic");
-            backgroundMusic.volume = 0.10;
-
             disableRollDice();
             canRollDice = false;
 
-            playerName = localStorage.getItem('playerName') || '';
-            const nameInput = document.getElementById('playerName');
-            const editNameButton = document.getElementById('editNameButton');
-            const saveNameButton = document.querySelector("#nameInputArea > button:nth-child(2)");
-            if (playerName) {
-                nameInput.value = playerName;
-                nameInput.disabled = true;
-                editNameButton.style.display = "inline-block";
-                saveNameButton.style.display = "none";
+            playerName = localStorage.getItem('playerName') || profile.username || '';
+            currentLanguage = settings.language;
+            updateText();
+
+            // Apply saved background music setting on load
+            if (settings.bgMusic) {
+                backgroundMusic.volume = settings.bgMusicVolume / 100;
+                resetSound.volume = settings.presetVolume / 100;
             } else {
-                editNameButton.style.display = "none";
-                saveNameButton.style.display = "inline-block";
+                backgroundMusic.pause();
+                resetSound.pause();
             }
 
-            setLanguage();
+            const hammer = new Hammer(document.body, { prevent_default: true });
+            hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+            hammer.on('swipeup', (e) => {
+                e.preventDefault();
+                if (!gameStarted && !document.getElementById('mainScreen').classList.contains('hidden')) startGame();
+            });
+            hammer.on('swiperight', (e) => {
+                e.preventDefault();
+                if (canRollDice && gameStarted && !hasRolled) rollDice();
+            });
+            hammer.on('swipeleft', (e) => {
+                e.preventDefault();
+                if (gameStarted && !document.getElementById('gameArea').classList.contains('hidden')) resetGame();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'r' || e.key === 'R') {
+                    if (canRollDice && !hasRolled) rollDice();
+                } else if (e.key === 'Enter' || e.key === ' ') {
+                    const active = document.activeElement;
+                    if (active.classList.contains('focusable')) active.click();
+                }
+            });
         };
-
-        document.addEventListener('keydown', (event) => {
-            if ((event.key === 'r' || event.key === 'R') && canRollDice && !hasRolled) rollDice();
-        });
-
-        const hammer = new Hammer(document.body, { prevent_default: true });
-        hammer.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
-        hammer.add(new Hammer.Swipe({ event: 'swipeup', direction: Hammer.DIRECTION_UP }));
-        hammer.on('swipeup', (event) => {
-            event.preventDefault();
-            if (!gameStarted) startGame();
-        });
-        hammer.on('swiperight', (event) => {
-            event.preventDefault();
-            if (canRollDice && gameStarted && !hasRolled) rollDice();
-        });
-        hammer.on('swipeleft', (event) => {
-            event.preventDefault();
-            if (gameStarted) resetGame();
-        });
     </script>
 </body>
 </html>
