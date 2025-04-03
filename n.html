@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,8 +158,10 @@
 
         <!-- Main Screen -->
         <div id="mainScreen" class="section" aria-label="Main Menu">
+         <button class="more-options focusable" onclick="showMoreOptions()" aria-label="More Options">☰</button>
+<p> Snakes and Ladders </p>
             <button onclick="startGame()" aria-label="Start Game">Start Game</button>
-            <button class="more-options focusable" onclick="showMoreOptions()" aria-label="More Options">☰</button>
+   </p>         <button onclick="startGame()" aria-label="Start Game">Start Game</button>
         </div>
 
         <!-- More Options -->
@@ -398,7 +399,7 @@
                     botClimbedLadder: "The bot climbed a ladder, reaching ",
                     botSnakeBite: "The bot was bitten by a snake and slid down to ",
                     nowYourTurn: ", it's your turn! Please roll the dice.",
-                    winMessage: "Congratulations! You won!",
+                    winMessage: "Congratulations! You won this game!",
                     loseMessage: "The bot won! Better luck next time.",
                     resetMessage: "Game has been reset. ",
                     startGameMessage: "Welcome to the game, ",
@@ -430,7 +431,7 @@
                     rolled: "ने फेंका",
                     youAreAt: " की स्थिति है ",
                     botPositionIs: "बॉट की स्थिति है ",
-                    wouldGoOver: " आगे निकल जाता, इसलिए वह वहीं पर रहता है ",
+                    wouldGoOver: " , आप आगे निकल जाते, इसलिए आप  वहीं पर रहते हैं ",
                     climbedLadder: " ने एक सीढ़ी चढ़ी और अब वह है ",
                     snakeBite: " को सांप ने काट लिया और वह नीचे फिसल गया ",
                     yourPosition: " की स्थिति है ",
@@ -1097,11 +1098,9 @@
             backgroundMusic = document.getElementById("backgroundMusic");
             disableRollDice();
             canRollDice = false;
-
             playerName = localStorage.getItem('playerName') || profile.username || '';
             currentLanguage = settings.language;
             updateText();
-
             // Apply saved background music setting on load
             if (settings.bgMusic) {
                 backgroundMusic.volume = settings.bgMusicVolume / 100;
@@ -1110,7 +1109,6 @@
                 backgroundMusic.pause();
                 resetSound.pause();
             }
-
             const hammer = new Hammer(document.body, { prevent_default: true });
             hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
             hammer.on('swipeup', (e) => {
@@ -1125,7 +1123,6 @@
                 e.preventDefault();
                 if (gameStarted && !document.getElementById('gameArea').classList.contains('hidden')) resetGame();
             });
-
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'r' || e.key === 'R') {
                     if (canRollDice && !hasRolled) rollDice();
