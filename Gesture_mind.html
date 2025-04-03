@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GestureMind - Enhanced Accessible Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            user-select: none;
+            margin: 20px;
+            background-color: #222;
+            color: white;
+            overflow: hidden;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            transition: opacity 0.5s;
+        }
+        button {
+            margin: 10px;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #swipeArea {
+            width: 90%;
+            max-width: 400px;
+            height: 300px;
+            background-color: #87CEEB;
+            line-height: 300px;
+            font-size: 20px;
+            margin: auto;
+            border: 2px solid black;
+            text-align: center;
+            touch-action: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .floatingDialog {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        #progressBar {
+            width: 80%;
+            max-width: 300px;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px auto;
+        }
+        #progress {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 100%;
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body>
+    <div id="mainScreen" class="screen" role="main">
+        <h1>GestureMind</h1>
+        <button onclick="showTutorial()" aria-label="Show Tutorial">Tutorial</button>
+        <button onclick="startGame()" aria-label="Start Game">Start Game</button>
+    </div>
+    <div id="tutorialScreen" class="screen" role="dialog" aria-label="Tutorial">
+        <div class="floatingDialog">
+            <h2>Game Tutorial</h2>
+            <p>Welcome to GestureMind, an accessible audio game!</p>
+            <p>Swipe or use arrow keys based on audio cues within 5 seconds per gesture.</p>
+            <p>Score 100 points within 3 minutes to win!</p>
+            <p>Directions: Up (↑), Down (↓), Left (←), Right (→).</p>
+            <button onclick="hideTutorial()" aria-label="Close Tutorial">Close</button>
+        </div>
+    </div>
+    <div id="gameScreen" class="screen" role="region" aria-live="off">
+        <h2>Game On!</h2>
+        <div id="swipeArea" aria-label="Swipe area, listen for audio cue" role="presentation">Swipe or Use Arrow Keys</div>
+        <p id="score" aria-live="polite">Score: 0</p>
+        <p id="timer" aria-live="off">Time Left: 180s</p>
+        <p id="turnTimer" aria-live="off">Turn Time: 5s</p>
+        <div id="progressBar"><div id="progress"></div></div>
+        <button onclick="toggleGamePause()" aria-label="Pause or Resume Game">Pause / Resume</button>
+        <button onclick="endGame()" aria-label="Stop Game">Stop Game</button>
+    </div>
+    <!-- Audio Elements -->
+    <audio id="gameBGM" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3" loop></audio>
+    <audio id="mainScreenSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3"></audio>
+    <audio id="pauseSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg"></audio>
+    <audio id="resetSound" src="https://github.com/ Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg"></audio>
+    <audio id="swipeUpCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3"></audio>
+    <audio id="swipeDownCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3"></audio>
+    <audio id="swipeLeftCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3"></audio>
+    <audio id="swipeRightCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20forward.%20.mp3"></audio>
+    <audio id="successSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/shoot.wav"></audio>
+    <audio id="failSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/miss.wav"></audio>
+    <audio id="alertSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3"></audio>
+    <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3"></audio>
+    <audio id="fallSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav"></audio>
+    <script>
+        let score = 0;
+        let totalTime = 180; // 3 minutes in seconds
+        let turnTime = 5; // 5 seconds per gesture
+        let gameInterval;
+        let turnInterval;
+        let isGamePaused = false;
+        let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
+        let currentCue = "";
+        const swipeArea = document.getElementById("swipeArea");
+        const cues = ["up", "down", "left", "right"];
+        const audioElements = {
+            bgm: document.getElementById("gameBGM"),
+            mainScreen: document.getElementById("mainScreenSound"),
+            pause: document.getElementById("pauseSound"),
+            reset: document.getElementById("resetSound"),
+            up: document.getElementById("swipeUpCue"),
+            down: document.getElementById("swipeDownCue"),
+            left: document.getElementById("swipeLeftCue"),
+            right: document.getElementById("swipeRightCue"),
+            success: document.getElementById("successSound"),
+            fail: document.getElementById("failSound"),
+            alert: document.getElementById("alertSound"),
+            win: document.getElementById("winSound"),
+            fall: document.getElementById("fallSound")
+        };
+
+        function playCue() {
+            currentCue = cues[Math.floor(Math.random() * cues.length)];
+            audioElements[currentCue].play();
+            turnTime = 5; // Reset turn timer
+            clearInterval(turnInterval);
+            turnInterval = setInterval(turnLoop, 1000);
+        }
+
+        function showTutorial() {
+            document.getElementById("mainScreen").style.display = "none";
+            document.getElementById("tutorialScreen").style.display = "flex";
+            audioElements.mainScreen.pause();
+        }
+
+        function hideTutorial() {
+            document.getElementById("tutorialScreen").style.display = "none";
+            document.getElementById("mainScreen").style.display = "flex";
+            audioElements.mainScreen.play();
+        }
+
+        function startGame() {
+            document.getElementById("mainScreen").style.display = "none";
+            document.getElementById("gameScreen").style.display = "flex";
+            score = 0;
+            totalTime = 180;
+            turnTime = 5;
+            isGamePaused = false;
+            updateUI();
+            audioElements.mainScreen.pause();
+            audioElements.bgm.play();
+            playCue();
+            gameInterval = setInterval(gameLoop, 1000);
+            document.addEventListener("touchstart", handleTouchStart);
+            document.addEventListener("touchend", handleTouchEnd);
+            document.addEventListener("keydown", handleKeyDown);
+        }
+
+        function gameLoop() {
+            if (!isGamePaused) {
+                totalTime--;
+                updateUI();
+                if (totalTime <= 10 && totalTime > 0) audioElements.alert.play();
+                if (totalTime <= 0) {
+                    endGame();
+                }
+            }
+        }
+
+        function turnLoop() {
+            if (!isGamePaused) {
+                turnTime--;
+                updateUI();
+                if (turnTime <= 0) {
+                    handleGesture("none"); // Treat as a miss if time runs out
+                }
+            }
+        }
+
+        function toggleGamePause() {
+            isGamePaused = !isGamePaused;
+            audioElements.pause.play();
+            audioElements.bgm[isGamePaused ? "pause" : "play"]();
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(turnInterval);
+            audioElements.bgm.pause();
+            const result = score >= 100 ? "Congratulations! You won!" : `Game Over! Final Score: ${score}`;
+            if (score >= 100) audioElements.win.play();
+            else audioElements.fall.play();
+            setTimeout(() => {
+                // Use a modal instead of alert
+                const modal = document.createElement("div");
+                modal.style.position = "fixed";
+                modal.style.top = "50%";
+                modal.style.left = "50%";
+                modal.style.transform = "translate(-50%, -50%)";
+                modal.style.background = "rgba(0, 0, 0, 0.8)";
+                modal.style.color = "white";
+                modal.style.padding = "20px";
+                modal.style.borderRadius = "10px";
+                modal.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.3)";
+                modal.style.zIndex = "1";
+                modal.textContent = result;
+                document.body.appendChild(modal);
+                setTimeout(() => {
+                    modal.remove();
+                    document.getElementById("gameScreen").style.display = "none";
+                    document.getElementById("mainScreen").style.display = "flex";
+                    audioElements.mainScreen.play();
+                }, 2000);
+            }, 1000);
+        }
+
+        function updateUI() {
+            document.getElementById("score").textContent = `Score: ${score}`;
+            document.getElementById("timer").textContent = `Time Left: ${totalTime}s`;
+            document.getElementById("turnTimer").textContent = `Turn Time: ${turnTime}s`;
+            document.getElementById("progress").style.width = `${(totalTime / 180) * 100}%`;
+        }
+
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            detectSwipe();
+            e.preventDefault();
+        }
+
+        function handleKeyDown(e) {
+            if (document.getElementById("gameScreen").style.display === "flex" && !isGamePaused) {
+                switch (e.key) {
+                    case "ArrowUp":
+                        handleGesture("up");
+                        break;
+                    case "ArrowDown":
+                        handleGesture("down");
+                        break;
+                    case "ArrowLeft":
+                        handleGesture("left");
+                        break;
+                    case "ArrowRight":
+                        handleGesture("right");
+                        break;
+                }
+            }
+        }
+
+        function detectSwipe() {
+            let diffX = touchEndX - touchStartX;
+            let diffY = touchEndY - touchStartY;
+            let detectedGesture = "";
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 50) detectedGesture = "right";
+                else if (diffX < -50) detectedGesture = "left";
+            } else {
+                if (diffY > 50) detectedGesture = "down";
+                else if (diffY < -50) detectedGesture = "up";
+            }
+
+            if (detectedGesture) handleGesture(detectedGesture);
+        }
+
+        function handleGesture(gesture) {
+            clearInterval(turnInterval);
+            if (gesture === currentCue) {
+                score += 2; // 2 points per correct gesture
+                audioElements.success.play();
+                navigator.vibrate?.(200);
+                swipeArea.style.backgroundColor = "#90EE90"; // Visual feedback
+                setTimeout(() => swipeArea.style.backgroundColor = "#87CEEB", 200);
+            } else {
+                score = Math.max(0, score - 1);
+                audioElements.fail.play();
+                navigator.vibrate?.([100, 50, 100]);
+                swipeArea.style.backgroundColor = "#FF6347";
+                setTimeout(() => swipeArea.style.backgroundColor = "#87CEEB", 200);
+            }
+            updateUI();
+            if (score >= 100) {
+                setTimeout(() => endGame(), 500);
+            } else if (totalTime > 0) {
+                setTimeout(playCue, 500);
+            }
+        }
+
+        // Initial Setup
+        document.getElementById("mainScreen").style.display = "flex";
+        audioElements.mainScreen.play();
+    </script>
+</body>
+</html>
