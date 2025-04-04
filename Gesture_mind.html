@@ -4,17 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GestureMind - Accessible Game for the Blind</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <meta name="description" content="GestureMind: An accessible audio-based game for the blind with customizable sounds.">
+    <title>GestureMind - Enhanced Accessible Audio Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --hover-color: #45a049;
+            --background-dark: #222;
+            --text-light: #fff;
+            --swipe-area: #87CEEB;
+            --dialog-bg: rgba(0, 0, 0, 0.8);
+            --button-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            --success-bg: #90EE90;
+            --fail-bg: #FF6347;
+        }
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            user-select: none;
             margin: 0;
             padding: 20px;
-            background-color: #222;
-            color: white;
+            background-color: var(--background-dark);
+            color: var(--text-light);
+            text-align: center;
+            user-select: none;
             overflow: hidden;
         }
         .screen {
@@ -22,50 +34,78 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 80vh;
-            transition: opacity 0.5s;
+            min-height: 80vh;
+            transition: opacity 0.5s ease-in-out;
+            position: relative;
+        }
+        .screen.active {
+            display: flex;
         }
         button {
-            margin: 10px;
             padding: 12px 24px;
-            font-size: 18px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
+            font-size: 1.125rem;
+            background-color: var(--primary-color);
+            color: var(--text-light);
             border: none;
             border-radius: 5px;
-            transition: background-color 0.3s;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin: 10px;
+            box-shadow: var(--button-shadow);
         }
         button:hover {
-            background-color: #45a049;
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+        }
+        #optionsButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+        }
+        .navigate-up {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.5rem;
         }
         #swipeArea {
             width: 90%;
             max-width: 400px;
             height: 300px;
-            background-color: #87CEEB;
+            background-color: var(--swipe-area);
+            font-size: 1.25rem;
             line-height: 300px;
-            font-size: 20px;
-            margin: auto;
-            border: 2px solid black;
-            text-align: center;
-            touch-action: none;
+            margin: 20px auto;
+            border: 2px solid #000;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--button-shadow);
+            touch-action: none;
+            transition: background-color 0.3s ease;
         }
         .floatingDialog {
             position: fixed;
-            top: 20px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px;
+            transform: translate(-50%, -50%);
+            background: var(--dialog-bg);
+            color: var(--text-light);
+            padding: 30px;
             border-radius: 10px;
-            width: 80%;
+            width: 90%;
             max-width: 500px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+            box-shadow: var(--button-shadow);
+            z-index: 2000;
+            text-align: center;
+        }
+        .dialogBackdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1500;
         }
         #progressBar {
             width: 80%;
@@ -78,122 +118,169 @@
         }
         #progress {
             height: 100%;
-            background-color: #4CAF50;
+            background-color: var(--primary-color);
             width: 100%;
             transition: width 1s linear;
         }
-        #navDrawer {
-            position: fixed;
-            top: 0;
-            left: -250px;
-            width: 250px;
-            height: 100%;
-            background: #333;
-            padding: 20px;
-            transition: left 0.3s;
-            z-index: 2000;
+        #profileStats p, .audio-setting {
+            margin: 10px 0;
+            font-size: 1.1rem;
         }
-        #navDrawer.open {
-            left: 0;
+        .audio-setting input[type="range"] {
+            width: 150px;
+            vertical-align: middle;
         }
-        #navDrawer button {
-            width: 100%;
-            text-align: left;
+        .audio-setting input[type="file"] {
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <!-- Main Screen -->
-    <div id="mainScreen" class="screen" role="main">
-        <h1>GestureMind</h1>
+    <div id="mainScreen" class="screen active" role="main" aria-labelledby="mainTitle">
+        <h1 id="mainTitle">GestureMind</h1>
         <p id="currentLevelDisplay">Current Level: 1</p>
-        <button onclick="toggleNavDrawer()" aria-label="Open Navigation Drawer">Menu</button>
-        <button onclick="startGame()" aria-label="Start Game">Start Game</button>
-        <button id="continueButton" onclick="startGame(userData.currentLevel)" aria-label="Continue with Next Level" style="display: none;">Continue with Level</button>
+        <button id="optionsButton" onclick="showOptions()" aria-label="Additional Options">☰</button>
+        <button onclick="startGame()" aria-label="Start New Game">Start Game</button>
+        <button id="continueButton" onclick="startGame(userData.currentLevel)" aria-label="Continue with Current Level" style="display: none;">Continue with Level</button>
         <button onclick="startGame(1)" aria-label="Restart from Level 1">Restart from Level 1</button>
     </div>
 
-    <!-- Tutorial Screen -->
-    <div id="tutorialScreen" class="screen" role="dialog" aria-label="Tutorial">
-        <div class="floatingDialog">
-            <h2>Game Tutorial</h2>
-            <p>Welcome to GestureMind, an accessible audio game!</p>
-            <p>Swipe or use arrow keys based on audio cues within 5 seconds per gesture.</p>
-            <p>Score 100 points within 3 minutes to win each level!</p>
-            <p>Directions: Up (↑), Down (↓), Left (←), Right (→).</p>
-            <button onclick="hideTutorial()" aria-label="Close Tutorial">Close</button>
-        </div>
+    <!-- Options Screen -->
+    <div id="optionsScreen" class="screen" role="dialog" aria-labelledby="optionsTitle">
+        <button class="navigate-up" onclick="hideOptions()" aria-label="Back to Main Menu">↑</button>
+        <h2 id="optionsTitle">Options</h2>
+        <button onclick="showUserProfile()" aria-label="View User Profile">Profile</button>
+        <button onclick="showSoundSettings()" aria-label="Manage Audio Settings">Manage Sound & Effects</button>
     </div>
 
     <!-- Game Screen -->
-    <div id="gameScreen" class="screen" role="region" aria-live="off">
-        <h2>Game On! Level <span id="gameLevel">1</span></h2>
-        <div id="swipeArea" aria-label="Swipe area, listen for audio cue" role="presentation">Swipe or Use Arrow Keys</div>
-        <p id="score" aria-live="off">Score: 0</p>
-        <p id="timer" aria-live="off">Time Left: 180s</p>
-        <p id="turnTimer" aria-live="off">Turn Time: 5s</p>
-        <div id="progressBar"><div id="progress"></div></div>
+    <div id="gameScreen" class="screen" role="region" aria-labelledby="gameTitle">
+        <h2 id="gameTitle">Game On! Level <span id="gameLevel">1</span></h2>
+        <div id="swipeArea" aria-label="Swipe area, listen for audio cue and respond">Swipe or Use Arrow Keys</div>
+        <p id="score">Score: 0</p>
+        <p id="timer">Time Left: 180s</p>
+        <p id="turnTimer">Turn Time: 5s</p>
+        <div id="progressBar" role="progressbar" aria-valuenow="180" aria-valuemin="0" aria-valuemax="180" aria-label="Game Progress">
+            <div id="progress"></div>
+        </div>
         <button id="pauseButton" onclick="toggleGamePause()" aria-label="Pause Game">Pause</button>
         <button onclick="endGame()" aria-label="Stop Game">Stop Game</button>
     </div>
 
-    <!-- Navigation Drawer -->
-    <div id="navDrawer" role="navigation" aria-label="Navigation Menu">
-        <button onclick="toggleNavDrawer()" aria-label="Close Navigation Drawer">Close</button>
-        <button onclick="showUserProfile()" aria-label="User Profile">User Profile</button>
-        <button onclick="showSoundSettings()" aria-label="Manage Sounds and Effects">Manage Sounds</button>
-    </div>
-
     <!-- User Profile Screen -->
-    <div id="profileScreen" class="screen" role="dialog" aria-label="User Profile">
-        <div class="floatingDialog">
-            <h2>User Profile</h2>
-            <label for="userName">Name:</label>
-            <input type="text" id="userName" aria-label="Enter your name">
-            <p id="profileStats"></p>
-            <button onclick="saveProfile()" aria-label="Save Profile">Save</button>
-            <button onclick="hideProfile()" aria-label="Back to Main Menu">Back</button>
-        </div>
+    <div id="profileScreen" class="screen" role="dialog" aria-labelledby="profileTitle">
+        <button class="navigate-up" onclick="hideProfile()" aria-label="Back to Options">↑</button>
+        <h2 id="profileTitle">User Profile</h2>
+        <label for="userName">Name:</label>
+        <input type="text" id="userName" aria-label="Enter your name" placeholder="Player">
+        <div id="profileStats" aria-label="Profile Statistics"></div>
+        <button onclick="saveProfile()" aria-label="Save Profile Changes">Save</button>
+        <button onclick="deleteProfile()" aria-label="Delete Profile">Delete Profile</button>
     </div>
 
     <!-- Sound Settings Screen -->
-    <div id="soundSettingsScreen" class="screen" role="dialog" aria-label="Sound Settings">
-        <div class="floatingDialog">
-            <h2>Manage Sounds</h2>
-            <label for="bgmVolume">BGM Volume:</label>
-            <input type="range" id="bgmVolume" min="0" max="1" step="0.1" value="1">
-            <label for="successVolume">Success Volume:</label>
-            <input type="range" id="successVolume" min="0" max="1" step="0.1" value="1">
-            <button onclick="hideSoundSettings()" aria-label="Back to Main Menu">Back</button>
+    <div id="soundSettingsScreen" class="screen" role="dialog" aria-labelledby="soundSettingsTitle">
+        <button class="navigate-up" onclick="hideSoundSettings()" aria-label="Back to Options">↑</button>
+        <h2 id="soundSettingsTitle">Manage Sound & Effects</h2>
+        <div class="audio-setting">
+            <label for="bgmVolume">Background Music Volume:</label>
+            <input type="range" id="bgmVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Background Music Volume">
+            <input type="file" id="bgmFile" accept="audio/*" aria-label="Upload Custom Background Music">
         </div>
+        <div class="audio-setting">
+            <label for="mainScreenVolume">Main Screen Volume:</label>
+            <input type="range" id="mainScreenVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Main Screen Volume">
+            <input type="file" id="mainScreenFile" accept="audio/*" aria-label="Upload Custom Main Screen Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="pauseVolume">Pause Volume:</label>
+            <input type="range" id="pauseVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Pause Volume">
+            <input type="file" id="pauseFile" accept="audio/*" aria-label="Upload Custom Pause Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="resetVolume">Reset Volume:</label>
+            <input type="range" id="resetVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Reset Volume">
+            <input type="file" id="resetFile" accept="audio/*" aria-label="Upload Custom Reset Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="swipeUpVolume">Swipe Up Volume:</label>
+            <input type="range" id="swipeUpVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Swipe Up Volume">
+            <input type="file" id="swipeUpFile" accept="audio/*" aria-label="Upload Custom Swipe Up Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="swipeDownVolume">Swipe Down Volume:</label>
+            <input type="range" id="swipeDownVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Swipe Down Volume">
+            <input type="file" id="swipeDownFile" accept="audio/*" aria-label="Upload Custom Swipe Down Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="swipeLeftVolume">Swipe Left Volume:</label>
+            <input type="range" id="swipeLeftVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Swipe Left Volume">
+            <input type="file" id="swipeLeftFile" accept="audio/*" aria-label="Upload Custom Swipe Left Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="swipeRightVolume">Swipe Right Volume:</label>
+            <input type="range" id="swipeRightVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Swipe Right Volume">
+            <input type="file" id="swipeRightFile" accept="audio/*" aria-label="Upload Custom Swipe Right Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="successVolume">Success Volume:</label>
+            <input type="range" id="successVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Success Volume">
+            <input type="file" id="successFile" accept="audio/*" aria-label="Upload Custom Success Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="failVolume">Fail Volume:</label>
+            <input type="range" id="failVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Fail Volume">
+            <input type="file" id="failFile" accept="audio/*" aria-label="Upload Custom Fail Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="alertVolume">Alert Volume:</label>
+            <input type="range" id="alertVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Alert Volume">
+            <input type="file" id="alertFile" accept="audio/*" aria-label="Upload Custom Alert Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="winVolume">Win Volume:</label>
+            <input type="range" id="winVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Win Volume">
+            <input type="file" id="winFile" accept="audio/*" aria-label="Upload Custom Win Sound">
+        </div>
+        <div class="audio-setting">
+            <label for="fallVolume">Fall Volume:</label>
+            <input type="range" id="fallVolume" min="0" max="1" step="0.1" value="1" aria-label="Adjust Fall Volume">
+            <input type="file" id="fallFile" accept="audio/*" aria-label="Upload Custom Fall Sound">
+        </div>
+        <button onclick="hideSoundSettings()" aria-label="Return to Options">Back</button>
     </div>
 
     <!-- Audio Elements -->
-    <audio id="gameBGM" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3" loop></audio>
-    <audio id="mainScreenSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3"></audio>
-    <audio id="pauseSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg"></audio>
-    <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg"></audio>
-    <audio id="swipeUpCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3"></audio>
-    <audio id="swipeDownCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3"></audio>
-    <audio id="swipeLeftCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3"></audio>
-    <audio id="swipeRightCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20forward.%20.mp3"></audio>
-    <audio id="successSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/shoot.wav"></audio>
-    <audio id="failSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/miss.wav"></audio>
-    <audio id="alertSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3"></audio>
-    <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3"></audio>
-    <audio id="fallSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav"></audio>
+    <audio id="gameBGM" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3" preload="auto" loop></audio>
+    <audio id="mainScreenSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3" preload="auto"></audio>
+    <audio id="pauseSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg" preload="auto"></audio>
+    <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg" preload="auto"></audio>
+    <audio id="swipeUpCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3" preload="auto"></audio>
+    <audio id="swipeDownCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3" preload="auto"></audio>
+    <audio id="swipeLeftCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3" preload="auto"></audio>
+    <audio id="swipeRightCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20forward.%20.mp3" preload="auto"></audio>
+    <audio id="successSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/shoot.wav" preload="auto"></audio>
+    <audio id="failSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/miss.wav" preload="auto"></audio>
+    <audio id="alertSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3" preload="auto"></audio>
+    <audio id="fallSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav" preload="auto"></audio>
 
     <script>
+        'use strict';
+
         let score = 0;
         let totalTime = 180;
         let turnTime = 5;
         let gameInterval, turnInterval;
         let isGamePaused = false;
+        let isAudioPlaying = false;
         let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
         let currentCues = [];
         let currentLevel = 1;
         let swipeCount = 0;
         let startTime = 0;
+        let lastSpokenScore = 0;
         const maxLevels = 5;
         const swipeArea = document.getElementById("swipeArea");
         const cues = ["up", "down", "left", "right"];
@@ -222,178 +309,219 @@
             matchesWon: 0,
             matchesLost: 0,
             totalTimeTaken: 0,
-            gamesPlayed: 0
+            gamesPlayed: 0,
+            levelScores: {},
+            customSounds: {}
         };
 
-        // Load user data from local storage
-        if (localStorage.getItem("gestureMindUserData")) {
-            userData = JSON.parse(localStorage.getItem("gestureMindUserData"));
+        const speak = (text) => {
+            if (!isAudioPlaying) {
+                const audio = new Audio(`https://api.streamelements.com/kappa/v2/speech?voice=Aditi&text=${encodeURIComponent(text)}`);
+                audio.play().catch(err => console.error("TTS Error:", err));
+            }
+        };
+
+        const setScreen = (screenId) => {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            if (screenId !== "none") {
+                document.getElementById(screenId).classList.add('active');
+            }
+        };
+
+        const saveUserData = () => localStorage.setItem("gestureMindUserData", JSON.stringify(userData));
+        const loadUserData = () => {
+            const data = localStorage.getItem("gestureMindUserData");
+            if (data) {
+                userData = JSON.parse(data);
+                applyCustomSounds();
+            }
             updateMainScreen();
-        }
+        };
 
-        function saveUserData() {
-            localStorage.setItem("gestureMindUserData", JSON.stringify(userData));
-        }
+        const applyCustomSounds = () => {
+            for (const [key, url] of Object.entries(userData.customSounds)) {
+                if (audioElements[key] && url) {
+                    audioElements[key].src = url;
+                }
+            }
+        };
 
-        function playCue() {
+        const clearDialogs = () => {
+            document.querySelectorAll('.floatingDialog, .dialogBackdrop').forEach(el => el.remove());
+        };
+
+        const playCue = () => {
             currentCues = [];
             swipeCount = 0;
-            let numCues = currentLevel === 1 ? 1 : currentLevel;
+            const numCues = currentLevel === 1 ? 1 : Math.min(currentLevel, 3);
             for (let i = 0; i < numCues; i++) {
                 currentCues.push(cues[Math.floor(Math.random() * cues.length)]);
             }
             playNextCue(0);
-        }
+        };
 
-        function playNextCue(index) {
+        const playNextCue = (index) => {
             if (index < currentCues.length) {
-                audioElements[currentCues[index]].play();
-                audioElements[currentCues[index]].onended = () => playNextCue(index + 1);
+                const audio = audioElements[currentCues[index]];
+                isAudioPlaying = true;
+                audio.currentTime = 0;
+                audio.play().then(() => {
+                    audio.onended = () => {
+                        isAudioPlaying = false;
+                        playNextCue(index + 1);
+                    };
+                }).catch(err => {
+                    console.error(`Failed to play ${currentCues[index]} audio:`, err);
+                    isAudioPlaying = false;
+                    playNextCue(index + 1);
+                });
             } else {
                 turnTime = 5;
                 clearInterval(turnInterval);
                 turnInterval = setInterval(turnLoop, 1000);
             }
-        }
+        };
 
-        function showTutorial() {
-            document.getElementById("mainScreen").style.display = "none";
-            document.getElementById("tutorialScreen").style.display = "flex";
-            audioElements.mainScreen.pause();
-        }
-
-        function hideTutorial() {
-            document.getElementById("tutorialScreen").style.display = "none";
-            document.getElementById("mainScreen").style.display = "flex";
-            audioElements.mainScreen.play();
-        }
-
-        function startGame(level = 1) {
+        const startGame = (level = 1) => {
+            if (level > userData.currentLevel && (!userData.levelScores[userData.currentLevel] || userData.levelScores[userData.currentLevel] < 100)) {
+                speak("Complete current level with 100 points first");
+                return;
+            }
+            clearDialogs();
             currentLevel = level;
-            document.getElementById("mainScreen").style.display = "none";
-            document.getElementById("gameScreen").style.display = "flex";
+            setScreen("gameScreen");
             document.getElementById("gameLevel").textContent = currentLevel;
             score = 0;
             totalTime = 180;
             turnTime = 5;
             isGamePaused = false;
+            lastSpokenScore = 0;
             startTime = Date.now();
             updateUI();
             audioElements.mainScreen.pause();
-            audioElements.bgm.play();
+            audioElements.bgm.play().catch(err => console.error("BGM Error:", err));
             playCue();
             gameInterval = setInterval(gameLoop, 1000);
-            document.addEventListener("touchstart", handleTouchStart);
-            document.addEventListener("touchend", handleTouchEnd);
+            document.addEventListener("touchstart", handleTouchStart, { passive: false });
+            document.addEventListener("touchend", handleTouchEnd, { passive: false });
             document.addEventListener("keydown", handleKeyDown);
-        }
+            speak(`Game started, level ${currentLevel}`);
+        };
 
-        function gameLoop() {
+        const gameLoop = () => {
             if (!isGamePaused) {
                 totalTime--;
                 updateUI();
                 if (totalTime <= 10 && totalTime > 0) audioElements.alert.play();
                 if (totalTime <= 0) endGame(false);
+                if (score >= 80 && totalTime >= (180 - 180)) userData.matchesWon++;
             }
-        }
+        };
 
-        function turnLoop() {
+        const turnLoop = () => {
             if (!isGamePaused) {
                 turnTime--;
                 updateUI();
-                if (turnTime <= 0) {
-                    handleGesture("none");
-                }
+                if (turnTime <= 0) handleGesture("none");
             }
-        }
+        };
 
-        function toggleGamePause() {
+        const toggleGamePause = () => {
             isGamePaused = !isGamePaused;
             audioElements.pause.play();
             audioElements.bgm[isGamePaused ? "pause" : "play"]();
             document.getElementById("pauseButton").textContent = isGamePaused ? "Resume" : "Pause";
-        }
+            speak(isGamePaused ? "Game paused" : "Game resumed");
+        };
 
-        function endGame(won) {
+        const endGame = (won) => {
             clearInterval(gameInterval);
             clearInterval(turnInterval);
             audioElements.bgm.pause();
             const timeTaken = (Date.now() - startTime) / 1000;
             userData.totalTimeTaken += timeTaken;
             userData.gamesPlayed++;
-            if (won) {
-                userData.matchesWon++;
-                userData.currentLevel = Math.min(currentLevel + 1, maxLevels + 1);
+            userData.levelScores[currentLevel] = Math.max(userData.levelScores[currentLevel] || 0, score);
+            if (won && score >= 100) {
+                userData.currentLevel = Math.min(currentLevel + 1, maxLevels);
                 audioElements.win.play();
-            } else {
+            } else if (!won) {
                 userData.matchesLost++;
-                if (userData.matchesLost % 2 === 0 && currentLevel > 1) {
-                    userData.currentLevel = Math.max(1, currentLevel - 1);
-                }
                 audioElements.fall.play();
             }
             userData.totalScore += score;
             saveUserData();
             showResultDialog(won);
-        }
+            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchend", handleTouchEnd);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
 
-        function showResultDialog(won) {
+        const showResultDialog = (won) => {
+            clearDialogs();
+            setScreen("none");
+            const backdrop = document.createElement("div");
+            backdrop.className = "dialogBackdrop";
+            document.body.appendChild(backdrop);
             const modal = document.createElement("div");
             modal.className = "floatingDialog";
-            modal.setAttribute("role", "dialog");
-            modal.setAttribute("aria-label", won ? "You Won" : "You Lost");
             modal.innerHTML = `
-                <h2>${won ? "Congratulations, You Win!" : "Oh No, You Lose!"}</h2>
+                <h2>${won && score >= 100 ? "You Win!" : "Game Over"}</h2>
                 <p>Score: ${score}</p>
-                ${won && currentLevel < maxLevels ? `<button onclick="startGame(${currentLevel + 1})" aria-label="Go to Level ${currentLevel + 1}">Go to Level ${currentLevel + 1}</button>` : ""}
-                ${currentLevel === maxLevels && won ? "<p>You've conquered all levels! Amazing job!</p>" : ""}
-                <button onclick="backToMainMenu(this.parentElement)" aria-label="Go to Main Menu">Main Menu</button>
+                ${score >= 100 && currentLevel < maxLevels ? `<button onclick="startGame(${currentLevel + 1})">Next Level (${currentLevel + 1})</button>` : ""}
+                <button onclick="backToMainMenu()">Main Menu</button>
             `;
             document.body.appendChild(modal);
-        }
+            speak(`${won && score >= 100 ? "You win" : "Game over"}, score ${score}`);
+        };
 
-        function backToMainMenu(modal) {
-            modal.remove();
-            document.getElementById("gameScreen").style.display = "none";
-            document.getElementById("mainScreen").style.display = "flex";
-            audioElements.mainScreen.play();
+        const backToMainMenu = () => {
+            clearDialogs();
+            setScreen("mainScreen");
+            audioElements.mainScreen.currentTime = 0;
+            audioElements.mainScreen.play().catch(err => console.error("Main Screen Audio Error:", err));
             updateMainScreen();
-        }
+            speak("Back to main menu");
+        };
 
-        function updateUI() {
+        const updateUI = () => {
             document.getElementById("score").textContent = `Score: ${score}`;
             document.getElementById("timer").textContent = `Time Left: ${totalTime}s`;
             document.getElementById("turnTimer").textContent = `Turn Time: ${turnTime}s`;
             document.getElementById("progress").style.width = `${(totalTime / 180) * 100}%`;
-        }
+            checkScoreForTTS();
+        };
 
-        function handleTouchStart(e) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            e.preventDefault();
-        }
-
-        function handleTouchEnd(e) {
-            touchEndX = e.changedTouches[0].clientX;
-            touchEndY = e.changedTouches[0].clientY;
-            detectSwipe();
-            e.preventDefault();
-        }
-
-        function handleKeyDown(e) {
-            if (document.getElementById("gameScreen").style.display === "flex" && !isGamePaused) {
-                switch (e.key) {
-                    case "ArrowUp": handleGesture("up"); break;
-                    case "ArrowDown": handleGesture("down"); break;
-                    case "ArrowLeft": handleGesture("left"); break;
-                    case "ArrowRight": handleGesture("right"); break;
-                }
+        const checkScoreForTTS = () => {
+            const scoreDiff = Math.abs(score - lastSpokenScore);
+            const crossedThreshold = Math.floor(score / 4) !== Math.floor(lastSpokenScore / 4);
+            const signChange = (score < 0 && lastSpokenScore >= 0) || (score >= 0 && lastSpokenScore < 0);
+            if (crossedThreshold || signChange) {
+                speak(`Score ${score}`);
+                lastSpokenScore = score;
             }
-        }
+        };
 
-        function detectSwipe() {
-            let diffX = touchEndX - touchStartX;
-            let diffY = touchEndY - touchStartY;
+        const handleTouchStart = (e) => {
+            if (!isAudioPlaying) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        };
+
+        const handleTouchEnd = (e) => {
+            if (!isAudioPlaying) {
+                touchEndX = e.changedTouches[0].clientX;
+                touchEndY = e.changedTouches[0].clientY;
+                detectSwipe();
+                e.preventDefault();
+            }
+        };
+
+        const detectSwipe = () => {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
             let detectedGesture = "";
             if (Math.abs(diffX) > Math.abs(diffY)) {
                 if (diffX > 50) detectedGesture = "right";
@@ -403,16 +531,17 @@
                 else if (diffY < -50) detectedGesture = "up";
             }
             if (detectedGesture) handleGesture(detectedGesture);
-        }
+        };
 
-        function handleGesture(gesture) {
+        const handleGesture = (gesture) => {
+            if (isAudioPlaying) return;
             clearInterval(turnInterval);
             if (gesture === currentCues[swipeCount]) {
                 score += 1.5;
                 userData.correctSwipes++;
                 audioElements.success.play();
-                swipeArea.style.backgroundColor = "#90EE90";
-                setTimeout(() => swipeArea.style.backgroundColor = "#87CEEB", 200);
+                swipeArea.style.backgroundColor = "var(--success-bg)";
+                setTimeout(() => swipeArea.style.backgroundColor = "var(--swipe-area)", 200);
                 swipeCount++;
                 if (swipeCount === currentCues.length) {
                     if (score >= 100) endGame(true);
@@ -422,60 +551,162 @@
                 score = Math.max(0, score - 0.5);
                 userData.missedSwipes++;
                 audioElements.fail.play();
-                swipeArea.style.backgroundColor = "#FF6347";
-                setTimeout(() => swipeArea.style.backgroundColor = "#87CEEB", 200);
+                swipeArea.style.backgroundColor = "var(--fail-bg)";
+                setTimeout(() => swipeArea.style.backgroundColor = "var(--swipe-area)", 200);
                 playCue();
             }
             updateUI();
-        }
+        };
 
-        function toggleNavDrawer() {
-            const drawer = document.getElementById("navDrawer");
-            drawer.classList.toggle("open");
-        }
+        const handleKeyDown = (e) => {
+            if (isAudioPlaying) return;
+            if (document.getElementById("gameScreen").classList.contains("active") && !isGamePaused) {
+                switch (e.key) {
+                    case "ArrowUp": handleGesture("up"); break;
+                    case "ArrowDown": handleGesture("down"); break;
+                    case "ArrowLeft": handleGesture("left"); break;
+                    case "ArrowRight": handleGesture("right"); break;
+                }
+            }
+        };
 
-        function showUserProfile() {
-            document.getElementById("mainScreen").style.display = "none";
-            document.getElementById("profileScreen").style.display = "flex";
+        const showOptions = () => {
+            setScreen("optionsScreen");
+            audioElements.mainScreen.pause();
+            speak("Options menu opened");
+        };
+
+        const hideOptions = () => {
+            setScreen("mainScreen");
+            audioElements.mainScreen.currentTime = 0;
+            audioElements.mainScreen.play().catch(err => console.error("Main Screen Audio Error:", err));
+            speak("Back to main menu");
+        };
+
+        const showUserProfile = () => {
+            setScreen("profileScreen");
             document.getElementById("userName").value = userData.name;
             const avgTime = userData.gamesPlayed ? (userData.totalTimeTaken / userData.gamesPlayed).toFixed(2) : 0;
+            const winPercentage = userData.gamesPlayed ? ((userData.matchesWon / userData.gamesPlayed) * 100).toFixed(2) : 0;
+            const accuracy = (userData.correctSwipes + userData.missedSwipes) > 0 ? 
+                ((userData.correctSwipes / (userData.correctSwipes + userData.missedSwipes)) * 100).toFixed(2) : 0;
+            let levelScoresHTML = "";
+            for (let i = 1; i <= maxLevels; i++) {
+                levelScoresHTML += `<p>Level ${i} Best Score: ${userData.levelScores[i] || 0}</p>`;
+            }
             document.getElementById("profileStats").innerHTML = `
+                <p>Name: ${userData.name}</p>
                 <p>Current Level: ${userData.currentLevel}</p>
                 <p>Correct Swipes: ${userData.correctSwipes}</p>
                 <p>Missed Swipes: ${userData.missedSwipes}</p>
+                <p>Swipe Accuracy: ${accuracy}%</p>
                 <p>Total Score: ${userData.totalScore}</p>
                 <p>Matches Won: ${userData.matchesWon}</p>
                 <p>Matches Lost: ${userData.matchesLost}</p>
-                <p>Average Time: ${avgTime}s (${((avgTime / 180) * 100).toFixed(2)}%)</p>
-                <p>Tip: Reduce your average time percentage by swiping faster!</p>
+                <p>Win Percentage: ${winPercentage}%</p>
+                <p>Games Played: ${userData.gamesPlayed}</p>
+                <p>Average Time per Game: ${avgTime}s (${((avgTime / 180) * 100).toFixed(2)}%)</p>
+                ${levelScoresHTML}
+                <p>Tip: Improve your accuracy and speed to boost your stats!</p>
             `;
-        }
+            speak("Profile opened");
+        };
 
-        function saveProfile() {
-            userData.name = document.getElementById("userName").value || "Player";
+        const saveProfile = () => {
+            userData.name = document.getElementById("userName").value.trim() || "Player";
             saveUserData();
             hideProfile();
-        }
+            speak("Profile saved");
+        };
 
-        function hideProfile() {
-            document.getElementById("profileScreen").style.display = "none";
-            document.getElementById("mainScreen").style.display = "flex";
-            updateMainScreen();
-        }
+        const hideProfile = () => {
+            setScreen("optionsScreen");
+            speak("Back to options");
+        };
 
-        function showSoundSettings() {
-            document.getElementById("mainScreen").style.display = "none";
-            document.getElementById("soundSettingsScreen").style.display = "flex";
-            document.getElementById("bgmVolume").onchange = (e) => audioElements.bgm.volume = e.target.value;
-            document.getElementById("successVolume").onchange = (e) => audioElements.success.volume = e.target.value;
-        }
+        const deleteProfile = () => {
+            if (confirm("Are you sure you want to delete your profile? This will reset all stats and custom sounds.")) {
+                localStorage.removeItem("gestureMindUserData");
+                userData = {
+                    name: "Player",
+                    currentLevel: 1,
+                    correctSwipes: 0,
+                    missedSwipes: 0,
+                    totalScore: 0,
+                    matchesWon: 0,
+                    matchesLost: 0,
+                    totalTimeTaken: 0,
+                    gamesPlayed: 0,
+                    levelScores: {},
+                    customSounds: {}
+                };
+                resetAudioToDefault();
+                saveUserData();
+                hideProfile();
+                speak("Profile deleted");
+            }
+        };
 
-        function hideSoundSettings() {
-            document.getElementById("soundSettingsScreen").style.display = "none";
-            document.getElementById("mainScreen").style.display = "flex";
-        }
+        const resetAudioToDefault = () => {
+            audioElements.bgm.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3";
+            audioElements.mainScreen.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3";
+            audioElements.pause.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg";
+            audioElements.reset.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg";
+            audioElements.up.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3";
+            audioElements.down.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3";
+            audioElements.left.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3";
+            audioElements.right.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20forward.%20.mp3";
+            audioElements.success.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/shoot.wav";
+            audioElements.fail.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/miss.wav";
+            audioElements.alert.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3";
+            audioElements.win.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3";
+            audioElements.fall.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav";
+        };
 
-        function updateMainScreen() {
+        const showSoundSettings = () => {
+            setScreen("soundSettingsScreen");
+            const settings = [
+                { id: "bgm", element: audioElements.bgm },
+                { id: "mainScreen", element: audioElements.mainScreen },
+                { id: "pause", element: audioElements.pause },
+                { id: "reset", element: audioElements.reset },
+                { id: "swipeUp", element: audioElements.up },
+                { id: "swipeDown", element: audioElements.down },
+                { id: "swipeLeft", element: audioElements.left },
+                { id: "swipeRight", element: audioElements.right },
+                { id: "success", element: audioElements.success },
+                { id: "fail", element: audioElements.fail },
+                { id: "alert", element: audioElements.alert },
+                { id: "win", element: audioElements.win },
+                { id: "fall", element: audioElements.fall }
+            ];
+            settings.forEach(({ id, element }) => {
+                const volumeInput = document.getElementById(`${id}Volume`);
+                const fileInput = document.getElementById(`${id}File`);
+                volumeInput.value = element.volume;
+                volumeInput.oninput = (e) => element.volume = e.target.value;
+                fileInput.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith("audio/")) {
+                        const url = URL.createObjectURL(file);
+                        element.src = url;
+                        userData.customSounds[id] = url;
+                        saveUserData();
+                        speak(`Custom ${id} sound uploaded`);
+                    } else {
+                        speak("Please upload a valid audio file");
+                    }
+                };
+            });
+            speak("Sound settings opened");
+        };
+
+        const hideSoundSettings = () => {
+            setScreen("optionsScreen");
+            speak("Back to options");
+        };
+
+        const updateMainScreen = () => {
             document.getElementById("currentLevelDisplay").textContent = `Current Level: ${userData.currentLevel}`;
             const continueButton = document.getElementById("continueButton");
             if (userData.currentLevel > 1 && userData.currentLevel <= maxLevels) {
@@ -484,11 +715,43 @@
             } else {
                 continueButton.style.display = "none";
             }
-        }
+        };
 
-        // Initial Setup
-        document.getElementById("mainScreen").style.display = "flex";
-        audioElements.mainScreen.play();
+        // Play Main Screen Audio with Fallback
+        const playMainScreenAudio = () => {
+            audioElements.mainScreen.currentTime = 0;
+            const playPromise = audioElements.mainScreen.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log("Main screen audio playing successfully");
+                    })
+                    .catch(err => {
+                        console.error("Main Screen Audio Error on Load:", err);
+                        // Fallback: Retry after a short delay if blocked
+                        setTimeout(() => {
+                            audioElements.mainScreen.play().catch(err => console.error("Retry Main Screen Audio Error:", err));
+                        }, 1000);
+                    });
+            }
+        };
+
+        // Initialization
+        const init = () => {
+            loadUserData();
+            setScreen("mainScreen");
+            playMainScreenAudio(); // Play audio instantly on page load
+            speak("Welcome to GestureMind");
+        };
+
+        window.onload = init;
+
+        // Optional: Handle visibility change to ensure audio plays when tab is active
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && document.getElementById("mainScreen").classList.contains("active")) {
+                playMainScreenAudio();
+            }
+        });
     </script>
 </body>
 </html>
