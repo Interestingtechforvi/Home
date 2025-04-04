@@ -1,16 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GestureMind - Enhanced Accessible Game</title>
+    <title>GestureMind - Accessible Game for the Blind</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             user-select: none;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             background-color: #222;
             color: white;
             overflow: hidden;
@@ -63,6 +65,7 @@
             width: 80%;
             max-width: 500px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
         }
         #progressBar {
             width: 80%;
@@ -79,39 +82,97 @@
             width: 100%;
             transition: width 1s linear;
         }
+        #navDrawer {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background: #333;
+            padding: 20px;
+            transition: left 0.3s;
+            z-index: 2000;
+        }
+        #navDrawer.open {
+            left: 0;
+        }
+        #navDrawer button {
+            width: 100%;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
+    <!-- Main Screen -->
     <div id="mainScreen" class="screen" role="main">
         <h1>GestureMind</h1>
-        <button onclick="showTutorial()" aria-label="Show Tutorial">Tutorial</button>
+        <p id="currentLevelDisplay">Current Level: 1</p>
+        <button onclick="toggleNavDrawer()" aria-label="Open Navigation Drawer">Menu</button>
         <button onclick="startGame()" aria-label="Start Game">Start Game</button>
+        <button id="continueButton" onclick="startGame(userData.currentLevel)" aria-label="Continue with Next Level" style="display: none;">Continue with Level</button>
+        <button onclick="startGame(1)" aria-label="Restart from Level 1">Restart from Level 1</button>
     </div>
+
+    <!-- Tutorial Screen -->
     <div id="tutorialScreen" class="screen" role="dialog" aria-label="Tutorial">
         <div class="floatingDialog">
             <h2>Game Tutorial</h2>
             <p>Welcome to GestureMind, an accessible audio game!</p>
             <p>Swipe or use arrow keys based on audio cues within 5 seconds per gesture.</p>
-            <p>Score 100 points within 3 minutes to win!</p>
+            <p>Score 100 points within 3 minutes to win each level!</p>
             <p>Directions: Up (↑), Down (↓), Left (←), Right (→).</p>
             <button onclick="hideTutorial()" aria-label="Close Tutorial">Close</button>
         </div>
     </div>
+
+    <!-- Game Screen -->
     <div id="gameScreen" class="screen" role="region" aria-live="off">
-        <h2>Game On!</h2>
+        <h2>Game On! Level <span id="gameLevel">1</span></h2>
         <div id="swipeArea" aria-label="Swipe area, listen for audio cue" role="presentation">Swipe or Use Arrow Keys</div>
-        <p id="score" aria-live="polite">Score: 0</p>
+        <p id="score" aria-live="off">Score: 0</p>
         <p id="timer" aria-live="off">Time Left: 180s</p>
         <p id="turnTimer" aria-live="off">Turn Time: 5s</p>
         <div id="progressBar"><div id="progress"></div></div>
-        <button onclick="toggleGamePause()" aria-label="Pause or Resume Game">Pause / Resume</button>
+        <button id="pauseButton" onclick="toggleGamePause()" aria-label="Pause Game">Pause</button>
         <button onclick="endGame()" aria-label="Stop Game">Stop Game</button>
     </div>
+
+    <!-- Navigation Drawer -->
+    <div id="navDrawer" role="navigation" aria-label="Navigation Menu">
+        <button onclick="toggleNavDrawer()" aria-label="Close Navigation Drawer">Close</button>
+        <button onclick="showUserProfile()" aria-label="User Profile">User Profile</button>
+        <button onclick="showSoundSettings()" aria-label="Manage Sounds and Effects">Manage Sounds</button>
+    </div>
+
+    <!-- User Profile Screen -->
+    <div id="profileScreen" class="screen" role="dialog" aria-label="User Profile">
+        <div class="floatingDialog">
+            <h2>User Profile</h2>
+            <label for="userName">Name:</label>
+            <input type="text" id="userName" aria-label="Enter your name">
+            <p id="profileStats"></p>
+            <button onclick="saveProfile()" aria-label="Save Profile">Save</button>
+            <button onclick="hideProfile()" aria-label="Back to Main Menu">Back</button>
+        </div>
+    </div>
+
+    <!-- Sound Settings Screen -->
+    <div id="soundSettingsScreen" class="screen" role="dialog" aria-label="Sound Settings">
+        <div class="floatingDialog">
+            <h2>Manage Sounds</h2>
+            <label for="bgmVolume">BGM Volume:</label>
+            <input type="range" id="bgmVolume" min="0" max="1" step="0.1" value="1">
+            <label for="successVolume">Success Volume:</label>
+            <input type="range" id="successVolume" min="0" max="1" step="0.1" value="1">
+            <button onclick="hideSoundSettings()" aria-label="Back to Main Menu">Back</button>
+        </div>
+    </div>
+
     <!-- Audio Elements -->
     <audio id="gameBGM" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3" loop></audio>
     <audio id="mainScreenSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3"></audio>
     <audio id="pauseSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg"></audio>
-    <audio id="resetSound" src="https://github.com/ Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg"></audio>
+    <audio id="resetSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg"></audio>
     <audio id="swipeUpCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3"></audio>
     <audio id="swipeDownCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3"></audio>
     <audio id="swipeLeftCue" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3"></audio>
@@ -121,15 +182,19 @@
     <audio id="alertSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3"></audio>
     <audio id="winSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3"></audio>
     <audio id="fallSound" src="https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav"></audio>
+
     <script>
         let score = 0;
-        let totalTime = 180; // 3 minutes in seconds
-        let turnTime = 5; // 5 seconds per gesture
-        let gameInterval;
-        let turnInterval;
+        let totalTime = 180;
+        let turnTime = 5;
+        let gameInterval, turnInterval;
         let isGamePaused = false;
         let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
-        let currentCue = "";
+        let currentCues = [];
+        let currentLevel = 1;
+        let swipeCount = 0;
+        let startTime = 0;
+        const maxLevels = 5;
         const swipeArea = document.getElementById("swipeArea");
         const cues = ["up", "down", "left", "right"];
         const audioElements = {
@@ -148,12 +213,47 @@
             fall: document.getElementById("fallSound")
         };
 
+        let userData = {
+            name: "Player",
+            currentLevel: 1,
+            correctSwipes: 0,
+            missedSwipes: 0,
+            totalScore: 0,
+            matchesWon: 0,
+            matchesLost: 0,
+            totalTimeTaken: 0,
+            gamesPlayed: 0
+        };
+
+        // Load user data from local storage
+        if (localStorage.getItem("gestureMindUserData")) {
+            userData = JSON.parse(localStorage.getItem("gestureMindUserData"));
+            updateMainScreen();
+        }
+
+        function saveUserData() {
+            localStorage.setItem("gestureMindUserData", JSON.stringify(userData));
+        }
+
         function playCue() {
-            currentCue = cues[Math.floor(Math.random() * cues.length)];
-            audioElements[currentCue].play();
-            turnTime = 5; // Reset turn timer
-            clearInterval(turnInterval);
-            turnInterval = setInterval(turnLoop, 1000);
+            currentCues = [];
+            swipeCount = 0;
+            let numCues = currentLevel === 1 ? 1 : currentLevel;
+            for (let i = 0; i < numCues; i++) {
+                currentCues.push(cues[Math.floor(Math.random() * cues.length)]);
+            }
+            playNextCue(0);
+        }
+
+        function playNextCue(index) {
+            if (index < currentCues.length) {
+                audioElements[currentCues[index]].play();
+                audioElements[currentCues[index]].onended = () => playNextCue(index + 1);
+            } else {
+                turnTime = 5;
+                clearInterval(turnInterval);
+                turnInterval = setInterval(turnLoop, 1000);
+            }
         }
 
         function showTutorial() {
@@ -168,13 +268,16 @@
             audioElements.mainScreen.play();
         }
 
-        function startGame() {
+        function startGame(level = 1) {
+            currentLevel = level;
             document.getElementById("mainScreen").style.display = "none";
             document.getElementById("gameScreen").style.display = "flex";
+            document.getElementById("gameLevel").textContent = currentLevel;
             score = 0;
             totalTime = 180;
             turnTime = 5;
             isGamePaused = false;
+            startTime = Date.now();
             updateUI();
             audioElements.mainScreen.pause();
             audioElements.bgm.play();
@@ -190,9 +293,7 @@
                 totalTime--;
                 updateUI();
                 if (totalTime <= 10 && totalTime > 0) audioElements.alert.play();
-                if (totalTime <= 0) {
-                    endGame();
-                }
+                if (totalTime <= 0) endGame(false);
             }
         }
 
@@ -201,7 +302,7 @@
                 turnTime--;
                 updateUI();
                 if (turnTime <= 0) {
-                    handleGesture("none"); // Treat as a miss if time runs out
+                    handleGesture("none");
                 }
             }
         }
@@ -210,37 +311,53 @@
             isGamePaused = !isGamePaused;
             audioElements.pause.play();
             audioElements.bgm[isGamePaused ? "pause" : "play"]();
+            document.getElementById("pauseButton").textContent = isGamePaused ? "Resume" : "Pause";
         }
 
-        function endGame() {
+        function endGame(won) {
             clearInterval(gameInterval);
             clearInterval(turnInterval);
             audioElements.bgm.pause();
-            const result = score >= 100 ? "Congratulations! You won!" : `Game Over! Final Score: ${score}`;
-            if (score >= 100) audioElements.win.play();
-            else audioElements.fall.play();
-            setTimeout(() => {
-                // Use a modal instead of alert
-                const modal = document.createElement("div");
-                modal.style.position = "fixed";
-                modal.style.top = "50%";
-                modal.style.left = "50%";
-                modal.style.transform = "translate(-50%, -50%)";
-                modal.style.background = "rgba(0, 0, 0, 0.8)";
-                modal.style.color = "white";
-                modal.style.padding = "20px";
-                modal.style.borderRadius = "10px";
-                modal.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.3)";
-                modal.style.zIndex = "1";
-                modal.textContent = result;
-                document.body.appendChild(modal);
-                setTimeout(() => {
-                    modal.remove();
-                    document.getElementById("gameScreen").style.display = "none";
-                    document.getElementById("mainScreen").style.display = "flex";
-                    audioElements.mainScreen.play();
-                }, 2000);
-            }, 1000);
+            const timeTaken = (Date.now() - startTime) / 1000;
+            userData.totalTimeTaken += timeTaken;
+            userData.gamesPlayed++;
+            if (won) {
+                userData.matchesWon++;
+                userData.currentLevel = Math.min(currentLevel + 1, maxLevels + 1);
+                audioElements.win.play();
+            } else {
+                userData.matchesLost++;
+                if (userData.matchesLost % 2 === 0 && currentLevel > 1) {
+                    userData.currentLevel = Math.max(1, currentLevel - 1);
+                }
+                audioElements.fall.play();
+            }
+            userData.totalScore += score;
+            saveUserData();
+            showResultDialog(won);
+        }
+
+        function showResultDialog(won) {
+            const modal = document.createElement("div");
+            modal.className = "floatingDialog";
+            modal.setAttribute("role", "dialog");
+            modal.setAttribute("aria-label", won ? "You Won" : "You Lost");
+            modal.innerHTML = `
+                <h2>${won ? "Congratulations, You Win!" : "Oh No, You Lose!"}</h2>
+                <p>Score: ${score}</p>
+                ${won && currentLevel < maxLevels ? `<button onclick="startGame(${currentLevel + 1})" aria-label="Go to Level ${currentLevel + 1}">Go to Level ${currentLevel + 1}</button>` : ""}
+                ${currentLevel === maxLevels && won ? "<p>You've conquered all levels! Amazing job!</p>" : ""}
+                <button onclick="backToMainMenu(this.parentElement)" aria-label="Go to Main Menu">Main Menu</button>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function backToMainMenu(modal) {
+            modal.remove();
+            document.getElementById("gameScreen").style.display = "none";
+            document.getElementById("mainScreen").style.display = "flex";
+            audioElements.mainScreen.play();
+            updateMainScreen();
         }
 
         function updateUI() {
@@ -266,18 +383,10 @@
         function handleKeyDown(e) {
             if (document.getElementById("gameScreen").style.display === "flex" && !isGamePaused) {
                 switch (e.key) {
-                    case "ArrowUp":
-                        handleGesture("up");
-                        break;
-                    case "ArrowDown":
-                        handleGesture("down");
-                        break;
-                    case "ArrowLeft":
-                        handleGesture("left");
-                        break;
-                    case "ArrowRight":
-                        handleGesture("right");
-                        break;
+                    case "ArrowUp": handleGesture("up"); break;
+                    case "ArrowDown": handleGesture("down"); break;
+                    case "ArrowLeft": handleGesture("left"); break;
+                    case "ArrowRight": handleGesture("right"); break;
                 }
             }
         }
@@ -286,7 +395,6 @@
             let diffX = touchEndX - touchStartX;
             let diffY = touchEndY - touchStartY;
             let detectedGesture = "";
-
             if (Math.abs(diffX) > Math.abs(diffY)) {
                 if (diffX > 50) detectedGesture = "right";
                 else if (diffX < -50) detectedGesture = "left";
@@ -294,30 +402,87 @@
                 if (diffY > 50) detectedGesture = "down";
                 else if (diffY < -50) detectedGesture = "up";
             }
-
             if (detectedGesture) handleGesture(detectedGesture);
         }
 
         function handleGesture(gesture) {
             clearInterval(turnInterval);
-            if (gesture === currentCue) {
-                score += 2; // 2 points per correct gesture
+            if (gesture === currentCues[swipeCount]) {
+                score += 1.5;
+                userData.correctSwipes++;
                 audioElements.success.play();
-                navigator.vibrate?.(200);
-                swipeArea.style.backgroundColor = "#90EE90"; // Visual feedback
+                swipeArea.style.backgroundColor = "#90EE90";
                 setTimeout(() => swipeArea.style.backgroundColor = "#87CEEB", 200);
+                swipeCount++;
+                if (swipeCount === currentCues.length) {
+                    if (score >= 100) endGame(true);
+                    else playCue();
+                }
             } else {
-                score = Math.max(0, score - 1);
+                score = Math.max(0, score - 0.5);
+                userData.missedSwipes++;
                 audioElements.fail.play();
-                navigator.vibrate?.([100, 50, 100]);
                 swipeArea.style.backgroundColor = "#FF6347";
                 setTimeout(() => swipeArea.style.backgroundColor = "#87CEEB", 200);
+                playCue();
             }
             updateUI();
-            if (score >= 100) {
-                setTimeout(() => endGame(), 500);
-            } else if (totalTime > 0) {
-                setTimeout(playCue, 500);
+        }
+
+        function toggleNavDrawer() {
+            const drawer = document.getElementById("navDrawer");
+            drawer.classList.toggle("open");
+        }
+
+        function showUserProfile() {
+            document.getElementById("mainScreen").style.display = "none";
+            document.getElementById("profileScreen").style.display = "flex";
+            document.getElementById("userName").value = userData.name;
+            const avgTime = userData.gamesPlayed ? (userData.totalTimeTaken / userData.gamesPlayed).toFixed(2) : 0;
+            document.getElementById("profileStats").innerHTML = `
+                <p>Current Level: ${userData.currentLevel}</p>
+                <p>Correct Swipes: ${userData.correctSwipes}</p>
+                <p>Missed Swipes: ${userData.missedSwipes}</p>
+                <p>Total Score: ${userData.totalScore}</p>
+                <p>Matches Won: ${userData.matchesWon}</p>
+                <p>Matches Lost: ${userData.matchesLost}</p>
+                <p>Average Time: ${avgTime}s (${((avgTime / 180) * 100).toFixed(2)}%)</p>
+                <p>Tip: Reduce your average time percentage by swiping faster!</p>
+            `;
+        }
+
+        function saveProfile() {
+            userData.name = document.getElementById("userName").value || "Player";
+            saveUserData();
+            hideProfile();
+        }
+
+        function hideProfile() {
+            document.getElementById("profileScreen").style.display = "none";
+            document.getElementById("mainScreen").style.display = "flex";
+            updateMainScreen();
+        }
+
+        function showSoundSettings() {
+            document.getElementById("mainScreen").style.display = "none";
+            document.getElementById("soundSettingsScreen").style.display = "flex";
+            document.getElementById("bgmVolume").onchange = (e) => audioElements.bgm.volume = e.target.value;
+            document.getElementById("successVolume").onchange = (e) => audioElements.success.volume = e.target.value;
+        }
+
+        function hideSoundSettings() {
+            document.getElementById("soundSettingsScreen").style.display = "none";
+            document.getElementById("mainScreen").style.display = "flex";
+        }
+
+        function updateMainScreen() {
+            document.getElementById("currentLevelDisplay").textContent = `Current Level: ${userData.currentLevel}`;
+            const continueButton = document.getElementById("continueButton");
+            if (userData.currentLevel > 1 && userData.currentLevel <= maxLevels) {
+                continueButton.style.display = "block";
+                continueButton.textContent = `Continue with Level ${userData.currentLevel}`;
+            } else {
+                continueButton.style.display = "none";
             }
         }
 
