@@ -189,8 +189,7 @@
         <div class="audio-setting">
             <label for="bgmVolume">Background Music Volume:</label>
             <select id="bgmVolume" aria-label="Adjust Background Music Volume"></select>
-            <button onclick="previewAudio('bgm')" aria-label="Preview Background Music">Preview</button>
-            <button id="bgmPause" onclick="pausePreview('bgm')" aria-label="Pause Background Music Preview" style="display: none;">Pause</button>
+            <button id="bgmPreview" onclick="previewAudio('bgm')" aria-label="Preview Background Music">Preview</button>
             <input type="file" id="bgmFile" accept="audio/*" aria-label="Upload Custom Background Music">
             <button onclick="removeCustomSound('bgm')" aria-label="Remove Custom Background Music">Remove</button>
             <label><input type="checkbox" id="bgmLoop" checked> Loop</label>
@@ -198,96 +197,84 @@
         <div class="audio-setting">
             <label for="mainScreenVolume">Main Screen Volume:</label>
             <select id="mainScreenVolume" aria-label="Adjust Main Screen Volume"></select>
-            <button onclick="previewAudio('mainScreen')" aria-label="Preview Main Screen Sound">Preview</button>
-            <button id="mainScreenPause" onclick="pausePreview('mainScreen')" aria-label="Pause Main Screen Sound Preview" style="display: none;">Pause</button>
+            <button id="mainScreenPreview" onclick="previewAudio('mainScreen')" aria-label="Preview Main Screen Sound">Preview</button>
             <input type="file" id="mainScreenFile" accept="audio/*" aria-label="Upload Custom Main Screen Sound">
             <button onclick="removeCustomSound('mainScreen')" aria-label="Remove Custom Main Screen Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="pauseVolume">Pause Volume:</label>
             <select id="pauseVolume" aria-label="Adjust Pause Volume"></select>
-            <button onclick="previewAudio('pause')" aria-label="Preview Pause Sound">Preview</button>
-            <button id="pausePause" onclick="pausePreview('pause')" aria-label="Pause Pause Sound Preview" style="display: none;">Pause</button>
+            <button id="pausePreview" onclick="previewAudio('pause')" aria-label="Preview Pause Sound">Preview</button>
             <input type="file" id="pauseFile" accept="audio/*" aria-label="Upload Custom Pause Sound">
             <button onclick="removeCustomSound('pause')" aria-label="Remove Custom Pause Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="resetVolume">Reset Volume:</label>
             <select id="resetVolume" aria-label="Adjust Reset Volume"></select>
-            <button onclick="previewAudio('reset')" aria-label="Preview Reset Sound">Preview</button>
-            <button id="resetPause" onclick="pausePreview('reset')" aria-label="Pause Reset Sound Preview" style="display: none;">Pause</button>
+            <button id="resetPreview" onclick="previewAudio('reset')" aria-label="Preview Reset Sound">Preview</button>
             <input type="file" id="resetFile" accept="audio/*" aria-label="Upload Custom Reset Sound">
             <button onclick="removeCustomSound('reset')" aria-label="Remove Custom Reset Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeUpVolume">Swipe Up Volume:</label>
             <select id="swipeUpVolume" aria-label="Adjust Swipe Up Volume"></select>
-            <button onclick="previewAudio('up')" aria-label="Preview Swipe Up Sound">Preview</button>
-            <button id="swipeUpPause" onclick="pausePreview('up')" aria-label="Pause Swipe Up Sound Preview" style="display: none;">Pause</button>
+            <button id="swipeUpPreview" onclick="previewAudio('up')" aria-label="Preview Swipe Up Sound">Preview</button>
             <input type="file" id="swipeUpFile" accept="audio/*" aria-label="Upload Custom Swipe Up Sound">
             <button onclick="removeCustomSound('up')" aria-label="Remove Custom Swipe Up Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeDownVolume">Swipe Down Volume:</label>
             <select id="swipeDownVolume" aria-label="Adjust Swipe Down Volume"></select>
-            <button onclick="previewAudio('down')" aria-label="Preview Swipe Down Sound">Preview</button>
-            <button id="swipeDownPause" onclick="pausePreview('down')" aria-label="Pause Swipe Down Sound Preview" style="display: none;">Pause</button>
+            <button id="swipeDownPreview" onclick="previewAudio('down')" aria-label="Preview Swipe Down Sound">Preview</button>
             <input type="file" id="swipeDownFile" accept="audio/*" aria-label="Upload Custom Swipe Down Sound">
             <button onclick="removeCustomSound('down')" aria-label="Remove Custom Swipe Down Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeLeftVolume">Swipe Left Volume:</label>
             <select id="swipeLeftVolume" aria-label="Adjust Swipe Left Volume"></select>
-            <button onclick="previewAudio('left')" aria-label="Preview Swipe Left Sound">Preview</button>
-            <button id="swipeLeftPause" onclick="pausePreview('left')" aria-label="Pause Swipe Left Sound Preview" style="display: none;">Pause</button>
+            <button id="swipeLeftPreview" onclick="previewAudio('left')" aria-label="Preview Swipe Left Sound">Preview</button>
             <input type="file" id="swipeLeftFile" accept="audio/*" aria-label="Upload Custom Swipe Left Sound">
             <button onclick="removeCustomSound('left')" aria-label="Remove Custom Swipe Left Sound">Remove</button>
         </div>
         <div class="audio-setting">
-            <p> Select swipe right volume </p>p> this will be applied while playing game</p><label for="swipeRightVolume">Swipe Right Volume:</label>
+            <label for="swipeRightVolume">Swipe Right Volume:</label>
             <select id="swipeRightVolume" aria-label="Adjust Swipe Right Volume"></select>
-            <button onclick="previewAudio('right')" aria-label="Preview Swipe Right Sound">Preview</button>
-            <button id="swipeRightPause" onclick="pausePreview('right')" aria-label="Pause Swipe Right Sound Preview" style="display: none;">Pause</button>
+            <button id="swipeRightPreview" onclick="previewAudio('right')" aria-label="Preview Swipe Right Sound">Preview</button>
             <input type="file" id="swipeRightFile" accept="audio/*" aria-label="Upload Custom Swipe Right Sound">
             <button onclick="removeCustomSound('right')" aria-label="Remove Custom Swipe Right Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="successVolume">Success Volume:</label>
-      <p> Select sucsess audio volume </p>p>this will be applied after sucsessfully compleetion   </p>      <select id="successVolume" aria-label="Adjust Success Volume"></select>
-            <button onclick="previewAudio('success')" aria-label="Preview Success Sound">Preview</button>
-            <button id="successPause" onclick="pausePreview('success')" aria-label="Pause Success Sound Preview" style="display: none;">Pause</button>
+            <select id="successVolume" aria-label="Adjust Success Volume"></select>
+            <button id="successPreview" onclick="previewAudio('success')" aria-label="Preview Success Sound">Preview</button>
             <input type="file" id="successFile" accept="audio/*" aria-label="Upload Custom Success Sound">
             <button onclick="removeCustomSound('success')" aria-label="Remove Custom Success Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="failVolume">Fail Volume:</label>
-           <p> select the looz audio volume when you will looz any game </p> <select id="failVolume" aria-label="Adjust Fail Volume"></select>
-            <button onclick="previewAudio('fail')" aria-label="Preview Fail Sound">Preview</button>
-            <button id="failPause" onclick="pausePreview('fail')" aria-label="Pause Fail Sound Preview" style="display: none;">Pause</button>
+            <select id="failVolume" aria-label="Adjust Fail Volume"></select>
+            <button id="failPreview" onclick="previewAudio('fail')" aria-label="Preview Fail Sound">Preview</button>
             <input type="file" id="failFile" accept="audio/*" aria-label="Upload Custom Fail Sound">
             <button onclick="removeCustomSound('fail')" aria-label="Remove Custom Fail Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="alertVolume">Alert Volume:</label>
             <select id="alertVolume" aria-label="Adjust Alert Volume"></select>
-            <button onclick="previewAudio('alert')" aria-label="Preview Alert Sound">Preview</button>
-            <button id="alertPause" onclick="pausePreview('alert')" aria-label="Pause Alert Sound Preview" style="display: none;">Pause</button>
+            <button id="alertPreview" onclick="previewAudio('alert')" aria-label="Preview Alert Sound">Preview</button>
             <input type="file" id="alertFile" accept="audio/*" aria-label="Upload Custom Alert Sound">
             <button onclick="removeCustomSound('alert')" aria-label="Remove Custom Alert Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="winVolume">Win Volume:</label>
             <select id="winVolume" aria-label="Adjust Win Volume"></select>
-            <button onclick="previewAudio('win')" aria-label="Preview Win Sound">Preview</button>
-            <button id="winPause" onclick="pausePreview('win')" aria-label="Pause Win Sound Preview" style="display: none;">Pause</button>
+            <button id="winPreview" onclick="previewAudio('win')" aria-label="Preview Win Sound">Preview</button>
             <input type="file" id="winFile" accept="audio/*" aria-label="Upload Custom Win Sound">
             <button onclick="removeCustomSound('win')" aria-label="Remove Custom Win Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="fallVolume">Fall Volume:</label>
             <select id="fallVolume" aria-label="Adjust Fall Volume"></select>
-            <button onclick="previewAudio('fall')" aria-label="Preview Fall Sound">Preview</button>
-            <button id="fallPause" onclick="pausePreview('fall')" aria-label="Pause Fall Sound Preview" style="display: none;">Pause</button>
+            <button id="fallPreview" onclick="previewAudio('fall')" aria-label="Preview Fall Sound">Preview</button>
             <input type="file" id="fallFile" accept="audio/*" aria-label="Upload Custom Fall Sound">
             <button onclick="removeCustomSound('fall')" aria-label="Remove Custom Fall Sound">Remove</button>
         </div>
@@ -388,22 +375,23 @@
             "Fantastic Victory! You’re Unstoppable!",
             "You’re a Swipe Master! Well Done!",
             "Brilliant Win! Keep the Streak Going!",
-"Congratulations on your amazing victory!",
-"Well done! You are the champion!",
-"Fantastic job! You came out on top!",
-"You did it! Your hard work paid off!",
-"Cheers to your impressive win!",
-"Hats off to you, the winner!",
-"You crushed it! Congratulations!",
-"Bravo! You played brilliantly!",
-"What a win! You truly deserve it!",
-"Awesome achievement! You’re the winner!",
+            "Congratulations on your amazing victory!",
+            "Well done! You are the champion!",
+            "Fantastic job! You came out on top!",
+            "You did it! Your hard work paid off!",
+            "Cheers to your impressive win!",
+            "Hats off to you, the winner!",
+            "You crushed it! Congratulations!",
+            "Bravo! You played brilliantly!",
+            "What a win! You truly deserve it!",
+            "Awesome achievement! You’re the winner!",
             "Awesome Job! You Nailed It!",
             "Victory is Yours! Amazing Skills!"
         ];
 
         const loseMessages = [
-"O my god, you are loozer in this game. No issue any more, let's try again.",            "Oh No, Tough Luck! Try Again, Champ!",
+            "O my god, you are loozer in this game. No issue any more, let's try again.",
+            "Oh No, Tough Luck! Try Again, Champ!",
             "You looz. Don’t Give Up, Dear! You’ll Get It Next Time!",
             "You don't able to win this game. Aww, So Close! Let’s Bounce Back!",
             "You looz this game. No Worries, Friend! Another Shot Awaits!",
@@ -516,7 +504,7 @@
             if (!isGameActive) return;
             currentCues = [];
             swipeCount = 0;
-            const numCues = currentLevel === 1 ? 1 : Math.min(currentLevel, 3);
+            const numCues = currentLevel; // Enhanced: Number of cues matches level (1, 2, 3, 4, 5)
             for (let i = 0; i < numCues; i++) {
                 currentCues.push(cues[Math.floor(Math.random() * cues.length)]);
             }
@@ -730,13 +718,14 @@
             if (isAudioPlaying || !isGameActive) return;
             clearInterval(turnInterval);
             if (gesture === currentCues[swipeCount]) {
-                score += 1.5;
-                userData.correctSwipes++;
+                swipeCount++;
                 audioElements.success.play();
                 swipeArea.style.backgroundColor = "var(--success-bg)";
                 setTimeout(() => swipeArea.style.backgroundColor = "var(--swipe-area)", 500);
-                swipeCount++;
                 if (swipeCount === currentCues.length) {
+                    // Enhanced: 1.5 points per turn for Levels 2-5, per swipe for Level 1
+                    score += (currentLevel === 1) ? 1.5 : 1.5;
+                    userData.correctSwipes += currentLevel; // Increment by number of gestures in turn
                     if (score >= 100) endGame(true);
                     else playCue();
                 }
@@ -796,7 +785,7 @@
                 <p>Total Score: ${userData.totalScore}</p>
                 <p>Matches Won: ${userData.matchesWon}</p>
                 <p>Matches Lost: ${userData.matchesLost}</p>
-                <p>Win Percentagerando: ${winPercentage}%</p>
+                <p>Win Percentage: ${winPercentage}%</p>
                 <p>Games Played: ${userData.gamesPlayed}</p>
                 <p>Average Time per Game: ${avgTime}s (${((avgTime / 180) * 100).toFixed(2)}%)</p>
                 ${levelScoresHTML}
@@ -895,16 +884,22 @@
 
         const previewAudio = (key) => {
             const audio = audioElements[key];
+            const previewButton = document.getElementById(`${key}Preview`);
             audio.currentTime = 0;
             audio.play().then(() => {
-                document.getElementById(`${key}Pause`).style.display = "inline";
+                previewButton.textContent = "Stop Preview";
+                previewButton.setAttribute("aria-label", `Stop ${key} Sound Preview`);
+                previewButton.onclick = () => pausePreview(key);
             }).catch(err => console.error(`Preview Error for ${key}:`, err));
         };
 
         const pausePreview = (key) => {
             const audio = audioElements[key];
+            const previewButton = document.getElementById(`${key}Preview`);
             audio.pause();
-            document.getElementById(`${key}Pause`).style.display = "none";
+            previewButton.textContent = "Preview";
+            previewButton.setAttribute("aria-label", `Preview ${key} Sound`);
+            previewButton.onclick = () => previewAudio(key);
         };
 
         const removeCustomSound = (key) => {
@@ -934,6 +929,7 @@
             settings.forEach(({ id, element }) => {
                 const volumeSelect = document.getElementById(`${id}Volume`);
                 const fileInput = document.getElementById(`${id}File`);
+                const previewButton = document.getElementById(`${id}Preview`);
                 volumeSelect.value = userData.volumes[id] || element.volume;
                 volumeSelect.onchange = (e) => {
                     element.volume = parseFloat(e.target.value);
@@ -956,6 +952,9 @@
                         speak("Please upload a valid audio file");
                     }
                 };
+                previewButton.textContent = "Preview";
+                previewButton.setAttribute("aria-label", `Preview ${id} Sound`);
+                previewButton.onclick = () => previewAudio(id);
             });
             document.getElementById("bgmLoop").onchange = (e) => {
                 audioElements.bgm.loop = e.target.checked;
@@ -968,7 +967,11 @@
         const hideSoundSettings = () => {
             setScreen("optionsScreen");
             Object.values(audioElements).forEach(audio => audio.pause());
-            document.querySelectorAll(".audio-setting button[id$='Pause']").forEach(btn => btn.style.display = "none");
+            document.querySelectorAll(".audio-setting button[id$='Preview']").forEach(btn => {
+                btn.textContent = "Preview";
+                btn.setAttribute("aria-label", `Preview ${btn.id.replace('Preview', '')} Sound`);
+                btn.onclick = () => previewAudio(btn.id.replace('Preview', ''));
+            });
             speak("Back to options");
         };
 
@@ -976,12 +979,8 @@
             document.getElementById("currentLevelDisplay").textContent = `Current Level: ${userData.currentLevel}`;
             const currentLevelButton = document.getElementById("currentLevelButton");
             const restartLevelButton = document.getElementById("restartLevelButton");
-            
-            // Update "Start from Current Level" button
             currentLevelButton.textContent = `Start from Level ${userData.currentLevel}`;
             currentLevelButton.setAttribute("aria-label", `Start from Level ${userData.currentLevel}`);
-
-            // Check if restart is needed (score > 80 but < 100)
             const currentLevelScore = userData.levelScores[userData.currentLevel] || 0;
             if (currentLevelScore > 80 && currentLevelScore < 100) {
                 restartLevelButton.style.display = "block";
