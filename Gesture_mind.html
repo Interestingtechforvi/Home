@@ -144,14 +144,14 @@
         <p id="currentLevelDisplay">Current Level: 1</p>
         <button id="optionsButton" onclick="showOptions()" aria-label="Additional Options">☰</button>
         <button onclick="startGame()" aria-label="Start New Game">Start Game</button>
-        <button id="continueButton" onclick="startGame(userData.currentLevel)" aria-label="Continue with Current Level" style="display: none;">Continue with Level</button>
-        <button onclick="startGame(1)" aria-label="Restart from Level 1">Restart from Level 1</button>
+        <button id="currentLevelButton" onclick="startGame(userData.currentLevel)" aria-label="Start from Current Level">Start from Level</button>
+        <button id="restartLevelButton" onclick="startGame(userData.currentLevel)" aria-label="Restart from Level to Reach 100 Points" style="display: none;">Restart from Level</button>
         <button onclick="showTutorial()" aria-label="View Tutorial">Tutorial</button>
     </div>
 
     <!-- Options Screen -->
     <div id="optionsScreen" class="screen" role="dialog" aria-labelledby="optionsTitle">
-        <button class="navigate-up" onclick="hideOptions()" aria-label="Back to Main Menu">↑</button>
+        <button class="navigate-up" onclick="hideOptions()" aria-label="Navigate up">↑</button>
         <h2 id="optionsTitle">Options</h2>
         <button onclick="showUserProfile()" aria-label="View User Profile">Profile</button>
         <button onclick="showSoundSettings()" aria-label="Manage Audio Settings">Manage Sound & Effects</button>
@@ -173,10 +173,10 @@
 
     <!-- User Profile Screen -->
     <div id="profileScreen" class="screen" role="dialog" aria-labelledby="profileTitle">
-        <button class="navigate-up" onclick="hideProfile()" aria-label="Back to Options">↑</button>
+        <button class="navigate-up" onclick="hideProfile()" aria-label="Navigate up, Back to Options">↑</button>
         <h2 id="profileTitle">User Profile</h2>
         <label for="userName">Name:</label>
-        <input type="text" id="userName" aria-label="Enter your name" placeholder="Player">
+        <input type="text" id="userName" aria-label="Enter your name" placeholder="">
         <div id="profileStats" aria-label="Profile Statistics"></div>
         <button onclick="saveProfile()" aria-label="Save Profile Changes">Save</button>
         <button onclick="deleteProfile()" aria-label="Delete Profile">Delete Profile</button>
@@ -184,7 +184,7 @@
 
     <!-- Sound Settings Screen -->
     <div id="soundSettingsScreen" class="screen" role="dialog" aria-labelledby="soundSettingsTitle">
-        <button class="navigate-up" onclick="hideSoundSettings()" aria-label="Back to Options">↑</button>
+        <button class="navigate-up" onclick="hideSoundSettings()" aria-label="Navigate up, Back to Options">↑</button>
         <h2 id="soundSettingsTitle">Manage Sound & Effects</h2>
         <div class="audio-setting">
             <label for="bgmVolume">Background Music Volume:</label>
@@ -244,7 +244,7 @@
             <button onclick="removeCustomSound('left')" aria-label="Remove Custom Swipe Left Sound">Remove</button>
         </div>
         <div class="audio-setting">
-            <label for="swipeRightVolume">Swipe Right Volume:</label>
+            <p> Select swipe right volume </p>p> this will be applied while playing game</p><label for="swipeRightVolume">Swipe Right Volume:</label>
             <select id="swipeRightVolume" aria-label="Adjust Swipe Right Volume"></select>
             <button onclick="previewAudio('right')" aria-label="Preview Swipe Right Sound">Preview</button>
             <button id="swipeRightPause" onclick="pausePreview('right')" aria-label="Pause Swipe Right Sound Preview" style="display: none;">Pause</button>
@@ -253,7 +253,7 @@
         </div>
         <div class="audio-setting">
             <label for="successVolume">Success Volume:</label>
-            <select id="successVolume" aria-label="Adjust Success Volume"></select>
+      <p> Select sucsess audio volume </p>p>this will be applied after sucsessfully compleetion   </p>      <select id="successVolume" aria-label="Adjust Success Volume"></select>
             <button onclick="previewAudio('success')" aria-label="Preview Success Sound">Preview</button>
             <button id="successPause" onclick="pausePreview('success')" aria-label="Pause Success Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="successFile" accept="audio/*" aria-label="Upload Custom Success Sound">
@@ -261,7 +261,7 @@
         </div>
         <div class="audio-setting">
             <label for="failVolume">Fail Volume:</label>
-            <select id="failVolume" aria-label="Adjust Fail Volume"></select>
+           <p> select the looz audio volume when you will looz any game </p> <select id="failVolume" aria-label="Adjust Fail Volume"></select>
             <button onclick="previewAudio('fail')" aria-label="Preview Fail Sound">Preview</button>
             <button id="failPause" onclick="pausePreview('fail')" aria-label="Pause Fail Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="failFile" accept="audio/*" aria-label="Upload Custom Fail Sound">
@@ -353,7 +353,7 @@
         };
 
         let userData = {
-            name: "Player",
+            name: "",
             currentLevel: 1,
             correctSwipes: 0,
             missedSwipes: 0,
@@ -384,18 +384,29 @@
         };
 
         const winMessages = [
+            "congrachulations, you are winner of this game.",
             "Fantastic Victory! You’re Unstoppable!",
             "You’re a Swipe Master! Well Done!",
             "Brilliant Win! Keep the Streak Going!",
+"Congratulations on your amazing victory!",
+"Well done! You are the champion!",
+"Fantastic job! You came out on top!",
+"You did it! Your hard work paid off!",
+"Cheers to your impressive win!",
+"Hats off to you, the winner!",
+"You crushed it! Congratulations!",
+"Bravo! You played brilliantly!",
+"What a win! You truly deserve it!",
+"Awesome achievement! You’re the winner!",
             "Awesome Job! You Nailed It!",
             "Victory is Yours! Amazing Skills!"
         ];
 
         const loseMessages = [
-            "Oh No, Tough Luck! Try Again, Champ!",
-            "Don’t Give Up, Dear! You’ll Get It Next Time!",
-            "Aww, So Close! Let’s Bounce Back!",
-            "No Worries, Friend! Another Shot Awaits!",
+"O my god, you are loozer in this game. No issue any more, let's try again.",            "Oh No, Tough Luck! Try Again, Champ!",
+            "You looz. Don’t Give Up, Dear! You’ll Get It Next Time!",
+            "You don't able to win this game. Aww, So Close! Let’s Bounce Back!",
+            "You looz this game. No Worries, Friend! Another Shot Awaits!",
             "Game Over, But Your Spirit’s Strong! Retry?"
         ];
 
@@ -414,8 +425,8 @@
                 "details": [
                     {"action": "Swipe Up or Press Arrow Up", "cue": "Swipe up audio", "purpose": "Respond to the 'Swipe Up' cue."},
                     {"action": "Swipe Down or Press Arrow Down", "cue": "Swipe down audio", "purpose": "Respond to the 'Swipe Down' cue."},
-                    {"action": "Swipe Left or Press Arrow Left", "cue": "Swipe backward audio", "purpose": "Respond to the 'Swipe Left' cue."},
-                    {"action": "Swipe Right or Press Arrow Right", "cue": "Swipe forward audio", "purpose": "Respond to the 'Swipe Right' cue."}
+                    {"action": "Swipe Left or Press Arrow Left", "cue": "Swipe backward audio", "purpose": "Respond to the 'Swipe Backword' cue."},
+                    {"action": "Swipe Right or Press Arrow Right", "cue": "Swipe forward audio", "purpose": "Respond to the 'Swipe Forward' cue."}
                 ]
             },
             "Gameplay Mechanics": {
@@ -433,7 +444,7 @@
                 "title": "Navigating the Game",
                 "description": "Explore the different screens:",
                 "details": [
-                    {"screen": "Main Screen", "description": "Start a new game, continue from your current level, restart from Level 1, or view the tutorial."},
+                    {"screen": "Main Screen", "description": "Start a new game, start from your current level, restart a level if needed, or view the tutorial."},
                     {"screen": "Options", "description": "Access your profile or sound settings."},
                     {"screen": "Profile", "description": "View and edit your name and stats (saved permanently until deleted)."},
                     {"screen": "Sound Settings", "description": "Adjust volumes, upload custom sounds (saved until deleted), and preview audio effects."},
@@ -785,7 +796,7 @@
                 <p>Total Score: ${userData.totalScore}</p>
                 <p>Matches Won: ${userData.matchesWon}</p>
                 <p>Matches Lost: ${userData.matchesLost}</p>
-                <p>Win Percentage: ${winPercentage}%</p>
+                <p>Win Percentagerando: ${winPercentage}%</p>
                 <p>Games Played: ${userData.gamesPlayed}</p>
                 <p>Average Time per Game: ${avgTime}s (${((avgTime / 180) * 100).toFixed(2)}%)</p>
                 ${levelScoresHTML}
@@ -963,12 +974,21 @@
 
         const updateMainScreen = () => {
             document.getElementById("currentLevelDisplay").textContent = `Current Level: ${userData.currentLevel}`;
-            const continueButton = document.getElementById("continueButton");
-            if (userData.currentLevel > 1 && userData.currentLevel <= maxLevels) {
-                continueButton.style.display = "block";
-                continueButton.textContent = `Continue with Level ${userData.currentLevel}`;
+            const currentLevelButton = document.getElementById("currentLevelButton");
+            const restartLevelButton = document.getElementById("restartLevelButton");
+            
+            // Update "Start from Current Level" button
+            currentLevelButton.textContent = `Start from Level ${userData.currentLevel}`;
+            currentLevelButton.setAttribute("aria-label", `Start from Level ${userData.currentLevel}`);
+
+            // Check if restart is needed (score > 80 but < 100)
+            const currentLevelScore = userData.levelScores[userData.currentLevel] || 0;
+            if (currentLevelScore > 80 && currentLevelScore < 100) {
+                restartLevelButton.style.display = "block";
+                restartLevelButton.textContent = `Restart from Level ${userData.currentLevel}`;
+                restartLevelButton.setAttribute("aria-label", `Restart from Level ${userData.currentLevel} to Reach 100 Points`);
             } else {
-                continueButton.style.display = "none";
+                restartLevelButton.style.display = "none";
             }
         };
 
