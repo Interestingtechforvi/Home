@@ -190,80 +190,106 @@
             <label for="bgmVolume">Background Music Volume:</label>
             <select id="bgmVolume" aria-label="Adjust Background Music Volume"></select>
             <button onclick="previewAudio('bgm')" aria-label="Preview Background Music">Preview</button>
+            <button id="bgmPause" onclick="pausePreview('bgm')" aria-label="Pause Background Music Preview" style="display: none;">Pause</button>
             <input type="file" id="bgmFile" accept="audio/*" aria-label="Upload Custom Background Music">
+            <button onclick="removeCustomSound('bgm')" aria-label="Remove Custom Background Music">Remove</button>
             <label><input type="checkbox" id="bgmLoop" checked> Loop</label>
         </div>
         <div class="audio-setting">
             <label for="mainScreenVolume">Main Screen Volume:</label>
             <select id="mainScreenVolume" aria-label="Adjust Main Screen Volume"></select>
             <button onclick="previewAudio('mainScreen')" aria-label="Preview Main Screen Sound">Preview</button>
+            <button id="mainScreenPause" onclick="pausePreview('mainScreen')" aria-label="Pause Main Screen Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="mainScreenFile" accept="audio/*" aria-label="Upload Custom Main Screen Sound">
+            <button onclick="removeCustomSound('mainScreen')" aria-label="Remove Custom Main Screen Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="pauseVolume">Pause Volume:</label>
             <select id="pauseVolume" aria-label="Adjust Pause Volume"></select>
             <button onclick="previewAudio('pause')" aria-label="Preview Pause Sound">Preview</button>
+            <button id="pausePause" onclick="pausePreview('pause')" aria-label="Pause Pause Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="pauseFile" accept="audio/*" aria-label="Upload Custom Pause Sound">
+            <button onclick="removeCustomSound('pause')" aria-label="Remove Custom Pause Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="resetVolume">Reset Volume:</label>
             <select id="resetVolume" aria-label="Adjust Reset Volume"></select>
             <button onclick="previewAudio('reset')" aria-label="Preview Reset Sound">Preview</button>
+            <button id="resetPause" onclick="pausePreview('reset')" aria-label="Pause Reset Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="resetFile" accept="audio/*" aria-label="Upload Custom Reset Sound">
+            <button onclick="removeCustomSound('reset')" aria-label="Remove Custom Reset Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeUpVolume">Swipe Up Volume:</label>
             <select id="swipeUpVolume" aria-label="Adjust Swipe Up Volume"></select>
             <button onclick="previewAudio('up')" aria-label="Preview Swipe Up Sound">Preview</button>
+            <button id="swipeUpPause" onclick="pausePreview('up')" aria-label="Pause Swipe Up Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="swipeUpFile" accept="audio/*" aria-label="Upload Custom Swipe Up Sound">
+            <button onclick="removeCustomSound('up')" aria-label="Remove Custom Swipe Up Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeDownVolume">Swipe Down Volume:</label>
             <select id="swipeDownVolume" aria-label="Adjust Swipe Down Volume"></select>
             <button onclick="previewAudio('down')" aria-label="Preview Swipe Down Sound">Preview</button>
+            <button id="swipeDownPause" onclick="pausePreview('down')" aria-label="Pause Swipe Down Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="swipeDownFile" accept="audio/*" aria-label="Upload Custom Swipe Down Sound">
+            <button onclick="removeCustomSound('down')" aria-label="Remove Custom Swipe Down Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeLeftVolume">Swipe Left Volume:</label>
             <select id="swipeLeftVolume" aria-label="Adjust Swipe Left Volume"></select>
             <button onclick="previewAudio('left')" aria-label="Preview Swipe Left Sound">Preview</button>
+            <button id="swipeLeftPause" onclick="pausePreview('left')" aria-label="Pause Swipe Left Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="swipeLeftFile" accept="audio/*" aria-label="Upload Custom Swipe Left Sound">
+            <button onclick="removeCustomSound('left')" aria-label="Remove Custom Swipe Left Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="swipeRightVolume">Swipe Right Volume:</label>
             <select id="swipeRightVolume" aria-label="Adjust Swipe Right Volume"></select>
             <button onclick="previewAudio('right')" aria-label="Preview Swipe Right Sound">Preview</button>
+            <button id="swipeRightPause" onclick="pausePreview('right')" aria-label="Pause Swipe Right Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="swipeRightFile" accept="audio/*" aria-label="Upload Custom Swipe Right Sound">
+            <button onclick="removeCustomSound('right')" aria-label="Remove Custom Swipe Right Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="successVolume">Success Volume:</label>
             <select id="successVolume" aria-label="Adjust Success Volume"></select>
             <button onclick="previewAudio('success')" aria-label="Preview Success Sound">Preview</button>
+            <button id="successPause" onclick="pausePreview('success')" aria-label="Pause Success Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="successFile" accept="audio/*" aria-label="Upload Custom Success Sound">
+            <button onclick="removeCustomSound('success')" aria-label="Remove Custom Success Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="failVolume">Fail Volume:</label>
             <select id="failVolume" aria-label="Adjust Fail Volume"></select>
             <button onclick="previewAudio('fail')" aria-label="Preview Fail Sound">Preview</button>
+            <button id="failPause" onclick="pausePreview('fail')" aria-label="Pause Fail Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="failFile" accept="audio/*" aria-label="Upload Custom Fail Sound">
+            <button onclick="removeCustomSound('fail')" aria-label="Remove Custom Fail Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="alertVolume">Alert Volume:</label>
             <select id="alertVolume" aria-label="Adjust Alert Volume"></select>
             <button onclick="previewAudio('alert')" aria-label="Preview Alert Sound">Preview</button>
+            <button id="alertPause" onclick="pausePreview('alert')" aria-label="Pause Alert Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="alertFile" accept="audio/*" aria-label="Upload Custom Alert Sound">
+            <button onclick="removeCustomSound('alert')" aria-label="Remove Custom Alert Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="winVolume">Win Volume:</label>
             <select id="winVolume" aria-label="Adjust Win Volume"></select>
             <button onclick="previewAudio('win')" aria-label="Preview Win Sound">Preview</button>
+            <button id="winPause" onclick="pausePreview('win')" aria-label="Pause Win Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="winFile" accept="audio/*" aria-label="Upload Custom Win Sound">
+            <button onclick="removeCustomSound('win')" aria-label="Remove Custom Win Sound">Remove</button>
         </div>
         <div class="audio-setting">
             <label for="fallVolume">Fall Volume:</label>
             <select id="fallVolume" aria-label="Adjust Fall Volume"></select>
             <button onclick="previewAudio('fall')" aria-label="Preview Fall Sound">Preview</button>
+            <button id="fallPause" onclick="pausePreview('fall')" aria-label="Pause Fall Sound Preview" style="display: none;">Pause</button>
             <input type="file" id="fallFile" accept="audio/*" aria-label="Upload Custom Fall Sound">
+            <button onclick="removeCustomSound('fall')" aria-label="Remove Custom Fall Sound">Remove</button>
         </div>
         <button onclick="hideSoundSettings()" aria-label="Return to Options">Back</button>
     </div>
@@ -337,7 +363,24 @@
             totalTimeTaken: 0,
             gamesPlayed: 0,
             levelScores: {},
-            customSounds: {}
+            customSounds: {},
+            volumes: {}
+        };
+
+        const defaultAudioSources = {
+            bgm: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3",
+            mainScreen: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3",
+            pause: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg",
+            reset: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg",
+            up: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3",
+            down: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3",
+            left: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3",
+            right: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20forward.%20.mp3",
+            success: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/shoot.wav",
+            fail: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/miss.wav",
+            alert: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3",
+            win: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3",
+            fall: "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav"
         };
 
         const winMessages = [
@@ -379,11 +422,11 @@
                 "title": "Gameplay Rules",
                 "description": "Understand the core mechanics to succeed:",
                 "details": [
-                    {"rule": "Turn Time", "description": "You have 5 seconds per turn to respond to each cue. The timer decreases automatically every second."},
+                    {"rule": "Turn Time", "description": "You have 5 seconds per turn to respond to each cue after the audio finishes."},
                     {"rule": "Scoring", "description": "Correct swipe: +1.5 points. Incorrect or missed swipe: -0.5 points (minimum score is 0)."},
-                    {"rule": "Levels", "description": "Level 1 has 1 cue per turn. Higher levels (up to 3 cues) increase difficulty. You must score 100 points to unlock the next level."},
+                    {"rule": "Levels", "description": "Level 1 has 1 cue per turn. Higher levels (up to 3 cues) increase difficulty with no gap between cues. You must score 100 points to unlock the next level."},
                     {"rule": "Winning", "description": "Score 80+ points within 180 seconds to win. Score 100 points to advance."},
-                    {"rule": "Audio Cues", "description": "After Level 1, multiple cues play back-to-back with no delay between them."}
+                    {"rule": "Audio Cues", "description": "Level 1 cues play sequentially. Levels 2-5 cues play back-to-back with no gap."}
                 ]
             },
             "Screens": {
@@ -392,8 +435,8 @@
                 "details": [
                     {"screen": "Main Screen", "description": "Start a new game, continue from your current level, restart from Level 1, or view the tutorial."},
                     {"screen": "Options", "description": "Access your profile or sound settings."},
-                    {"screen": "Profile", "description": "View and edit your name, stats (correct/missed swipes, wins/losses, etc.), and level scores."},
-                    {"screen": "Sound Settings", "description": "Adjust volumes, upload custom sounds, and preview audio effects."},
+                    {"screen": "Profile", "description": "View and edit your name and stats (saved permanently until deleted)."},
+                    {"screen": "Sound Settings", "description": "Adjust volumes, upload custom sounds (saved until deleted), and preview audio effects."},
                     {"screen": "Game Screen", "description": "Play the game, pause, or stop. Displays score, total time, and turn time."}
                 ]
             },
@@ -401,10 +444,10 @@
                 "title": "Tips for Success",
                 "description": "Maximize your performance with these strategies:",
                 "details": [
-                    {"tip": "Practice Timing", "description": "Respond quickly within the 5-second turn time to avoid penalties."},
-                    {"tip": "Memorize Cues", "description": "Learn the audio cues to react faster, especially in higher levels with multiple cues."},
+                    {"tip": "Practice Timing", "description": "Respond quickly within the 5-second turn time after the audio ends."},
+                    {"tip": "Memorize Cues", "description": "Learn the audio cues to react faster, especially in higher levels with back-to-back cues."},
                     {"tip": "Use Arrow Keys", "description": "If swiping is tricky, use arrow keys for precise control."},
-                    {"tip": "Customize Sounds", "description": "Upload familiar audio files in Sound Settings to make cues easier to recognize."}
+                    {"tip": "Customize Sounds", "description": "Upload familiar audio files in Sound Settings to make cues easier to recognize (saved until deleted)."}
                 ]
             }
         };
@@ -423,12 +466,16 @@
             }
         };
 
-        const saveUserData = () => localStorage.setItem("gestureMindUserData", JSON.stringify(userData));
+        const saveUserData = () => {
+            localStorage.setItem("gestureMindUserData", JSON.stringify(userData));
+        };
+
         const loadUserData = () => {
-            const data = localStorage.getItem("gestureMindUserData");
-            if (data) {
-                userData = JSON.parse(data);
+            const savedData = localStorage.getItem("gestureMindUserData");
+            if (savedData) {
+                userData = JSON.parse(savedData);
                 applyCustomSounds();
+                applyVolumes();
             }
             updateMainScreen();
         };
@@ -440,6 +487,14 @@
                 }
             }
             audioElements.bgm.loop = document.getElementById("bgmLoop").checked;
+        };
+
+        const applyVolumes = () => {
+            for (const [key, volume] of Object.entries(userData.volumes)) {
+                if (audioElements[key]) {
+                    audioElements[key].volume = volume;
+                }
+            }
         };
 
         const clearDialogs = () => {
@@ -457,23 +512,23 @@
             turnTime = 5;
             updateUI();
             clearInterval(turnInterval);
-            turnInterval = setInterval(turnLoop, 1000);
             playNextCue(0);
         };
 
         const playNextCue = (index) => {
-            if (!isGameActive || index >= currentCues.length) return;
+            if (!isGameActive || index >= currentCues.length) {
+                if (index === currentCues.length) {
+                    turnInterval = setInterval(turnLoop, 1000); // Start countdown after all cues
+                }
+                return;
+            }
             const audio = audioElements[currentCues[index]];
             isAudioPlaying = true;
             audio.currentTime = 0;
             audio.play().then(() => {
                 audio.onended = () => {
                     isAudioPlaying = false;
-                    if (currentLevel === 1) {
-                        setTimeout(() => playNextCue(index + 1), 500); // Slight delay for Level 1
-                    } else {
-                        playNextCue(index + 1); // No delay after Level 1
-                    }
+                    playNextCue(index + 1); // Play next cue immediately after current one ends
                 };
             }).catch(err => {
                 console.error(`Failed to play ${currentCues[index]} audio:`, err);
@@ -499,7 +554,7 @@
             lastSpokenScore = 0;
             startTime = Date.now();
             updateUI();
-            updatePauseButton(); // Update button state on game start
+            updatePauseButton();
             audioElements.mainScreen.pause();
             audioElements.bgm.play().catch(err => console.error("BGM Error:", err));
             playCue();
@@ -545,7 +600,7 @@
             isGamePaused = !isGamePaused;
             audioElements.pause.play();
             audioElements.bgm[isGamePaused ? "pause" : "play"]();
-            updatePauseButton(); // Update button text and aria-label
+            updatePauseButton();
             speak(isGamePaused ? "Game paused" : "Game resumed");
         };
 
@@ -752,8 +807,7 @@
         };
 
         const deleteProfile = () => {
-            if (confirm("Are you sure you want to delete your profile? This will reset all stats and custom sounds.")) {
-                localStorage.removeItem("gestureMindUserData");
+            if (confirm("Reset all stats and custom sounds? This will delete all saved data.")) {
                 userData = {
                     name: "Player",
                     currentLevel: 1,
@@ -765,29 +819,24 @@
                     totalTimeTaken: 0,
                     gamesPlayed: 0,
                     levelScores: {},
-                    customSounds: {}
+                    customSounds: {},
+                    volumes: {}
                 };
+                localStorage.removeItem("gestureMindUserData");
                 resetAudioToDefault();
-                saveUserData();
                 hideProfile();
-                speak("Profile deleted");
+                speak("Profile deleted and reset");
             }
         };
 
         const resetAudioToDefault = () => {
-            audioElements.bgm.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Game%20BGM.mp3";
-            audioElements.mainScreen.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Main%20screen%20(1).mp3";
-            audioElements.pause.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Pause.ogg";
-            audioElements.reset.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg";
-            audioElements.up.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20up.%20.mp3";
-            audioElements.down.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20down.%20.mp3";
-            audioElements.left.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20backward.%20.mp3";
-            audioElements.right.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Swipe%20forward.%20.mp3";
-            audioElements.success.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/shoot.wav";
-            audioElements.fail.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/miss.wav";
-            audioElements.alert.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/alert%201%201.mp3";
-            audioElements.win.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/celebration.mp3";
-            audioElements.fall.src = "https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/foul.wav";
+            for (const [key, src] of Object.entries(defaultAudioSources)) {
+                audioElements[key].src = src;
+                audioElements[key].volume = 1; // Reset to default volume
+            }
+            userData.customSounds = {};
+            userData.volumes = {};
+            saveUserData();
         };
 
         const showTutorial = () => {
@@ -829,14 +878,29 @@
             }
             document.querySelectorAll(".audio-setting select").forEach(select => {
                 select.innerHTML = options.join("");
-                select.value = "1"; // Default to 100%
+                select.value = userData.volumes[select.id.replace("Volume", "")] || "1"; // Load saved volume or default to 100%
             });
         };
 
         const previewAudio = (key) => {
             const audio = audioElements[key];
             audio.currentTime = 0;
-            audio.play().catch(err => console.error(`Preview Error for ${key}:`, err));
+            audio.play().then(() => {
+                document.getElementById(`${key}Pause`).style.display = "inline";
+            }).catch(err => console.error(`Preview Error for ${key}:`, err));
+        };
+
+        const pausePreview = (key) => {
+            const audio = audioElements[key];
+            audio.pause();
+            document.getElementById(`${key}Pause`).style.display = "none";
+        };
+
+        const removeCustomSound = (key) => {
+            audioElements[key].src = defaultAudioSources[key];
+            delete userData.customSounds[key];
+            saveUserData();
+            speak(`Custom ${key} sound removed`);
         };
 
         const showSoundSettings = () => {
@@ -859,16 +923,24 @@
             settings.forEach(({ id, element }) => {
                 const volumeSelect = document.getElementById(`${id}Volume`);
                 const fileInput = document.getElementById(`${id}File`);
-                volumeSelect.value = element.volume;
-                volumeSelect.onchange = (e) => element.volume = parseFloat(e.target.value);
+                volumeSelect.value = userData.volumes[id] || element.volume;
+                volumeSelect.onchange = (e) => {
+                    element.volume = parseFloat(e.target.value);
+                    userData.volumes[id] = element.volume;
+                    saveUserData();
+                };
                 fileInput.onchange = (e) => {
                     const file = e.target.files[0];
                     if (file && file.type.startsWith("audio/")) {
-                        const url = URL.createObjectURL(file);
-                        element.src = url;
-                        userData.customSounds[id] = url;
-                        saveUserData();
-                        speak(`Custom ${id} sound uploaded`);
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const dataUrl = event.target.result;
+                            element.src = dataUrl;
+                            userData.customSounds[id] = dataUrl;
+                            saveUserData();
+                            speak(`Custom ${id} sound uploaded and saved`);
+                        };
+                        reader.readAsDataURL(file);
                     } else {
                         speak("Please upload a valid audio file");
                     }
@@ -878,11 +950,14 @@
                 audioElements.bgm.loop = e.target.checked;
                 saveUserData();
             };
+            document.getElementById("bgmLoop").checked = audioElements.bgm.loop;
             speak("Sound settings opened");
         };
 
         const hideSoundSettings = () => {
             setScreen("optionsScreen");
+            Object.values(audioElements).forEach(audio => audio.pause());
+            document.querySelectorAll(".audio-setting button[id$='Pause']").forEach(btn => btn.style.display = "none");
             speak("Back to options");
         };
 
@@ -899,19 +974,7 @@
 
         const playMainScreenAudio = () => {
             audioElements.mainScreen.currentTime = 0;
-            const playPromise = audioElements.mainScreen.play();
-            if (playPromise !== undefined) {
-                playPromise
-                    .then(() => {
-                        console.log("Main screen audio playing successfully");
-                    })
-                    .catch(err => {
-                        console.error("Main Screen Audio Error on Load:", err);
-                        setTimeout(() => {
-                            audioElements.mainScreen.play().catch(err => console.error("Retry Main Screen Audio Error:", err));
-                        }, 1000);
-                    });
-            }
+            audioElements.mainScreen.play().catch(err => console.error("Main Screen Audio Error:", err));
         };
 
         const init = () => {
