@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Zone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        #chat-container {
+            flex-grow: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        #header {
+            background: #00a884;
+            padding: 10px 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #efeae2;
+        }
+        .message-container {
+            margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 7px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        .sent {
+            background: #dcf8c6;
+            margin-left: auto;
+        }
+        .received {
+            background: #fff;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        }
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .timestamp {
+            font-size: 11px;
+            color: #667781;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .sender-name {
+            font-size: 11px;
+            color: #667781;
+            margin-left: 5px;
+        }
+        .voice-message {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background: #fff;
+            border-radius: 7px;
+            max-width: 70%;
+        }
+        .voice-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #input-container {
+            padding: 10px;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background: white;
+            outline: none;
+        }
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #00a884;
+            color: white;
+            font-size: 16px;
+        }
+        #voice-btn {
+            position: absolute;
+            right: 10px;
+        }
+        #send-btn {
+            display: none;
+        }
+        #username-modal, #profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+        }
+        .context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 5px 0;
+            z-index: 1000;
+        }
+        .context-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 15px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+        .context-menu button:hover {
+            background: #f0f0f0;
+        }
+        .hidden {
+            display: none;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="header" class="hidden">
+            <h3>Chat Zone</h3>
+            <button class="action-btn" onclick="showProfileSettings()" aria-label="Open profile settings">👤</button>
+        </div>
+        <div id="messages" class="hidden" role="log" aria-live="polite"></div>
+        <div id="input-container" class="hidden">
+            <input type="text" id="message-input" placeholder="Type a message..." aria-label="Message input">
+            <button id="send-btn" class="action-btn" onclick="sendMessage()" aria-label="Send message">➤</button>
+            <button id="voice-btn" class="action-btn" onclick="toggleRecording()" aria-label="Record voice message">🎙</button>
+        </div>
+    </div>
+
+    <div id="username-modal" role="dialog" aria-labelledby="username-title">
+        <div class="modal-content">
+            <h3 id="username-title">Enter Your Name</h3>
+            <input type="text" id="username-input" placeholder="Your name" aria-label="Enter your username">
+            <br><br>
+            <input type="file" id="initial-profile-pic" accept="image/*" aria-label="Upload profile picture (optional)">
+            <br><br>
+            <button onclick="saveUsername()" aria-label="Save username">Save</button>
+        </div>
+    </div>
+
+    <div id="profile-modal" role="dialog" aria-labelledby="profile-title">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="profile-title">Profile Settings</h3>
+                <button class="action-btn" onclick="hideProfileSettings()" aria-label="Navigate up to chat">⬆</button>
+            </div>
+            <input type="text" id="profile-name" placeholder="Your name" aria-label="Edit your username">
+            <br><br>
+            <input type="file" id="profile-pic" accept="image/*" aria-label="Upload profile picture">
+            <br><br>
+            <button onclick="saveProfile()" aria-label="Save profile changes">Save</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCe-tHLxNX0g3cRDIJM2f2dfGfhvd1BQcc",
+            authDomain: "interesting-tech-for-v-i.firebaseapp.com",
+            databaseURL: "https://interesting-tech-for-v-i-default-rtdb.firebaseio.com",
+            projectId: "interesting-tech-for-v-i",
+            storageBucket: "interesting-tech-for-v-i.appspot.com",
+            messagingSenderId: "984478442998",
+            appId: "1:984478442998:web:e8a7e99503df1f143b13d7",
+            measurementId: "G-LNBCVYCSDL"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const storage = getStorage(app);
+        const messagesRef = ref(db, 'messages');
+
+        let username = localStorage.getItem('chatUsername');
+        let profilePic = localStorage.getItem('profilePic');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const usernameModal = document.getElementById('username-modal');
+        const profileModal = document.getElementById('profile-modal');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceBtn = document.getElementById('voice-btn');
+        const inputContainer = document.getElementById('input-container');
+        const header = document.getElementById('header');
+
+        let mediaRecorder, audioChunks = [], audioBlob;
+        const adminUsername = "Interesting tech for v i 2006";
+
+        // Initial state management
+        if (!username) {
+            usernameModal.style.display = 'flex';
+            inputContainer.classList.add('hidden');
+            messagesDiv.classList.add('hidden');
+            header.classList.add('hidden');
+            profileModal.style.display = 'none';
+        } else {
+            usernameModal.style.display = 'none';
+            inputContainer.classList.remove('hidden');
+            messagesDiv.classList.remove('hidden');
+            header.classList.remove('hidden');
+            profileModal.style.display = 'none';
+        }
+
+        messageInput.addEventListener('input', () => {
+            if (messageInput.value.trim()) {
+                sendBtn.style.display = 'inline-flex';
+                voiceBtn.style.display = 'none';
+            } else {
+                sendBtn.style.display = 'none';
+                voiceBtn.style.display = 'inline-flex';
+            }
+        });
+
+        window.saveUsername = async function() {
+            const usernameInput = document.getElementById('username-input');
+            const fileInput = document.getElementById('initial-profile-pic');
+            username = usernameInput.value.trim();
+            if (username) {
+                localStorage.setItem('chatUsername', username);
+                if (fileInput.files[0]) {
+                    const fileRef = storageRef(storage, profiles/${username}_${Date.now()});
+                    await uploadBytes(fileRef, fileInput.files[0]);
+                    profilePic = await getDownloadURL(fileRef);
+                    localStorage.setItem('profilePic', profilePic);
+                }
+                usernameModal.style.display = 'none';
+                inputContainer.classList.remove('hidden');
+                messagesDiv.classList.remove('hidden');
+                header.classList.remove('hidden');
+                announce('Username saved. Chat interface is now available.');
+            } else {
+                alert('Please enter a name');
+            }
+        };
+
+        window.showProfileSettings = function() {
+            profileModal.style.display = 'flex';
+            inputContainer.classList.add('hidden');
+            messagesDiv.classList.add('hidden');
+            header.classList.add('hidden');
+            document.getElementById('profile-name').value = username;
+            announce('Profile settings opened.');
+        };
+
+        window.hideProfileSettings = function() {
+            profileModal.style.display = 'none';
+            inputContainer.classList.remove('hidden');
+            messagesDiv.classList.remove('hidden');
+            header.classList.remove('hidden');
+            announce('Returned to chat interface.');
+        };
+
+        window.saveProfile = async function() {
+            const newName = document.getElementById('profile-name').value.trim();
+            const fileInput = document.getElementById('profile-pic');
+            if (newName) {
+                username = newName;
+                localStorage.setItem('chatUsername', username);
+                
+                if (fileInput.files[0]) {
+                    const fileRef = storageRef(storage, profiles/${username}_${Date.now()});
+                    await uploadBytes(fileRef, fileInput.files[0]);
+                    profilePic = await getDownloadURL(fileRef);
+                    localStorage.setItem('profilePic', profilePic);
+                }
+                hideProfileSettings();
+                announce('Profile updated successfully.');
+            }
+        };
+
+        onValue(messagesRef, (snapshot) => {
+            messagesDiv.innerHTML = '';
+            const data = snapshot.val();
+            if (data) {
+                Object.entries(data).forEach(([id, message]) => {
+                    const isSent = message.username === username;
+                    const div = document.createElement('div');
+                    div.className = 'message-container';
+                    div.dataset.id = id;
+                    
+                    if (message.profilePic) {
+                        const img = document.createElement('img');
+                        img.src = message.profilePic;
+                        img.className = 'profile-img';
+                        img.alt = ${message.username}'s profile picture;
+                        if (!isSent) div.appendChild(img);
+                    }
+                    
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = message ${isSent ? 'sent' : 'received'};
+                    msgDiv.setAttribute('role', 'article');
+                    msgDiv.setAttribute('aria-label', ${message.username}'s message);
+                    
+                    if (message.text) {
+                        msgDiv.innerHTML = `
+                            <span>${message.text}</span>
+                            <div>
+                                <span class="timestamp">${new Date(message.timestamp).toLocaleTimeString()}</span>
+                                <span class="sender-name">sent by ${message.username}</span>
+                            </div>
+                        `;
+                    } else if (message.audioUrl) {
+                        const duration = message.duration || '0:00';
+                        msgDiv.className += ' voice-message';
+                        msgDiv.innerHTML = `
+                            <div class="voice-controls">
+                                <button onclick="togglePlay(this, '${message.audioUrl}')" aria-label="Play or pause voice message">▶</button>
+                                <input type="range" min="0" max="100" value="0" onchange="seekAudio(this, '${message.audioUrl}')" aria-label="Seek voice message">
+                                <span aria-label="Duration">${duration}</span>
+                                <select onchange="changeSpeed(this, '${message.audioUrl}')" aria-label="Playback speed">
+                                    <option value="1">1x</option>
+                                    <option value="1.5">1.5x</option>
+                                    <option value="2">2x</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span class="timestamp">${new Date(message.timestamp).toLocaleTimeString()}</span>
+                                <span class="sender-name">sent by ${message.username}</span>
+                            </div>
+                        `;
+                    }
+                    msgDiv.addEventListener('contextmenu', (e) => showContextMenu(e, id, message, isSent));
+                    div.appendChild(msgDiv);
+                    if (isSent && message.profilePic) {
+                        const img = document.createElement('img');
+                        img.src = message.profilePic;
+                        img.className = 'profile-img';
+                        img.alt = ${message.username}'s profile picture;
+                        div.appendChild(img);
+                    }
+                    messagesDiv.appendChild(div);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        });
+
+        window.sendMessage = function() {
+            const text = messageInput.value.trim();
+            if (text && username) {
+                push(messagesRef, {
+                    text: text,
+                    username: username,
+                    profilePic: profilePic,
+                    timestamp: Date.now()
+                });
+                messageInput.value = '';
+                sendBtn.style.display = 'none';
+                voiceBtn.style.display = 'inline-flex';
+                announce('Message sent.');
+            }
+        };
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        let currentAudio;
+        window.togglePlay = function(btn, url) {
+            if (currentAudio && currentAudio.src !== url) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            if (!currentAudio || currentAudio.src !== url) {
+                currentAudio = new Audio(url);
+                currentAudio.play();
+                btn.textContent = '⏸';
+                btn.setAttribute('aria-label', 'Pause voice message');
+                announce('Playing voice message.');
+            } else if (currentAudio.paused) {
+                currentAudio.play();
+                btn.textContent = '⏸';
+                btn.setAttribute('aria-label', 'Pause voice message');
+                announce('Resumed voice message.');
+            } else {
+                currentAudio.pause();
+                btn.textContent = '▶';
+                btn.setAttribute('aria-label', 'Play voice message');
+                announce('Paused voice message.');
+            }
+            currentAudio.onended = () => {
+                btn.textContent = '▶';
+                btn.setAttribute('aria-label', 'Play voice message');
+                announce('Voice message ended.');
+            };
+            currentAudio.ontimeupdate = () => {
+                const range = btn.nextElementSibling;
+                range.value = (currentAudio.currentTime / currentAudio.duration) * 100 || 0;
+            };
+        };
+
+        window.seekAudio = function(range, url) {
+            if (currentAudio && currentAudio.src === url) {
+                currentAudio.currentTime = (range.value / 100) * currentAudio.duration;
+                announce(Seeked to ${Math.round(range.value)}% of voice message.);
+            }
+        };
+
+        window.changeSpeed = function(select, url) {
+            if (currentAudio && currentAudio.src === url) {
+                currentAudio.playbackRate = parseFloat(select.value);
+                announce(Playback speed changed to ${select.value}x.);
+            }
+        };
+
+        window.toggleRecording = async function() {
+            if (!username) return alert('Please set a username first');
+            
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audio = new Audio(URL.createObjectURL(audioBlob));
+                        audio.onloadedmetadata = () => {
+                            const duration = formatDuration(audio.duration);
+                            previewAudio(audioBlob, duration);
+                        };
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    voiceBtn.textContent = '⏹';
+                    voiceBtn.setAttribute('aria-label', 'Stop recording');
+                    announce('Recording started.');
+                } catch (err) {
+                    alert('Microphone access denied. Please allow microphone permissions.');
+                    console.error('Recording error:', err);
+                }
+            } else {
+                mediaRecorder.stop();
+                voiceBtn.textContent = '🎙';
+                voiceBtn.setAttribute('aria-label', 'Record voice message');
+                announce('Recording stopped. Preview available.');
+            }
+        };
+
+        function previewAudio(blob, duration) {
+            const preview = document.createElement('div');
+            preview.innerHTML = `
+                <div class="voice-message" role="alert" aria-label="Voice message preview">
+                    <button onclick="new Audio(URL.createObjectURL(this.parentElement.dataset.blob)).play()" aria-label="Play preview">▶</button>
+                    <span aria-label="Duration">${duration}</span>
+                    <button onclick="sendAudio('${duration}')" aria-label="Send voice message">➤</button>
+                </div>
+            `;
+            preview.dataset.blob = blob;
+            inputContainer.appendChild(preview);
+            announce('Voice message preview available.');
+        }
+
+        window.sendAudio = async function(duration) {
+            const audioRef = storageRef(storage, audio/${username}_${Date.now()}.webm);
+            await uploadBytes(audioRef, audioBlob);
+            const audioUrl = await getDownloadURL(audioRef);
+            
+            push(messagesRef, {
+                audioUrl: audioUrl,
+                username: username,
+                profilePic: profilePic,
+                timestamp: Date.now(),
+                duration: duration
+            });
+            
+            const preview = inputContainer.querySelector('.voice-message');
+            if (preview) preview.remove();
+            announce('Voice message sent.');
+        };
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return ${mins}:${secs < 10 ? '0' : ''}${secs};
+        }
+
+        window.showContextMenu = function(e, id, message, isSent) {
+            e.preventDefault();
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) existingMenu.remove();
+            
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.left = ${e.pageX}px;
+            menu.style.top = ${e.pageY}px;
+            
+            if (isSent || message.username === adminUsername) {
+                menu.innerHTML = '<button onclick="deleteMessage(\'' + id + '\')">Delete</button>';
+            }
+            
+            document.body.appendChild(menu);
+            document.addEventListener('click', () => menu.remove(), { once: true });
+        };
+
+        window.deleteMessage = function(id) {
+            remove(ref(db, messages/${id}));
+            announce('Message deleted.');
+        };
+
+        function announce(message) {
+            const announcement = document.createElement('div');
+            announcement.className = 'sr-only';
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            setTimeout(() => announcement.remove(), 1000);
+        }
+    </script>
+</body>
+</html>
