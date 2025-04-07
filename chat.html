@@ -251,6 +251,8 @@
 
         let mediaRecorder, audioChunks = [];
         const adminUsername = "Interesting tech for v i 2006";
+        const sendSound = new Audio('https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/Reset.ogg');
+        const receiveSound = new Audio('https://github.com/Interestingtechforvi/Home/raw/refs/heads/main/getmessage.mp3');
 
         if (!username) {
             usernameModal.style.display = 'flex';
@@ -300,7 +302,7 @@
 
         window.showProfileSettings = function() {
             profileModal.style.display = 'flex';
-            inputContainer.classList.add('hidden');
+            inputContainer.classList.add('hidden'); // Hide input options
             messagesDiv.classList.add('hidden');
             header.classList.add('hidden');
             document.getElementById('profile-name').value = username;
@@ -309,7 +311,7 @@
 
         window.hideProfileSettings = function() {
             profileModal.style.display = 'none';
-            inputContainer.classList.remove('hidden');
+            inputContainer.classList.remove('hidden'); // Show input options again
             messagesDiv.classList.remove('hidden');
             header.classList.remove('hidden');
             announce('Returned to chat interface.');
@@ -333,16 +335,29 @@
             }
         };
 
+        let lastMessageCount = 0;
         onValue(messagesRef, (snapshot) => {
             messagesDiv.innerHTML = '';
             const data = snapshot.val();
             if (data) {
                 const messagesByDate = {};
-                Object.entries(data).forEach(([id, message]) => {
+                const messages = Object.entries(data);
+                messages.forEach(([id, message]) => {
                     const date = new Date(message.timestamp).toLocaleDateString();
                     if (!messagesByDate[date]) messagesByDate[date] = [];
                     messagesByDate[date].push({ id, ...message });
                 });
+
+                // Play sound if new messages are received from others
+                if (messages.length > lastMessageCount) {
+                    const newMessages = messages.slice(lastMessageCount);
+                    newMessages.forEach(([_, message]) => {
+                        if (message.username !== username) {
+                            receiveSound.play().catch(err => console.error('Receive sound error:', err));
+                        }
+                    });
+                    lastMessageCount = messages.length;
+                }
 
                 Object.keys(messagesByDate).sort((a, b) => new Date(a) - new Date(b)).forEach(date => {
                     const dateDiv = document.createElement('div');
@@ -420,6 +435,7 @@
                 messageInput.value = '';
                 sendBtn.style.display = 'none';
                 voiceBtn.style.display = 'inline-flex';
+                sendSound.play().catch(err => console.error('Send sound error:', err));
                 announce('Message sent.');
             }
         };
@@ -502,6 +518,7 @@
                                 duration: duration
                             });
                             stream.getTracks().forEach(track => track.stop());
+                            sendSound.play().catch(err => console.error('Send sound error:', err));
                             announce('Voice message recorded and sent.');
                         };
                     };
