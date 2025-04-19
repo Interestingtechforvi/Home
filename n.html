@@ -9,146 +9,246 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            color: #2c3e50;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: #ecf0f1;
             transition: background 0.5s, color 0.3s;
+            overflow-x: hidden;
         }
         body.dark-theme {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #ecf0f1;
+            background: linear-gradient(135deg, #1a3c34 0%, #14532d 100%);
+            color: #d1fae5;
         }
         h1 {
-            font-size: 2.8em;
-            margin: 25px 0;
-            text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+            font-size: 3em;
+            margin: 30px 0;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
             text-align: center;
-            color: #2980b9;
+            color: #22d3ee;
+            animation: pulse 2s infinite;
         }
         body.dark-theme h1 {
-            color: #3498db;
+            color: #38bdf8;
         }
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 25px;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 30px;
             position: relative;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 25px;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
         }
         body.dark-theme .container {
-            background: rgba(44, 62, 80, 0.9);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            background: rgba(17, 24, 39, 0.9);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
         .navigate-up, .more-options {
-            font-size: 1.8em;
+            font-size: 2em;
             cursor: pointer;
-            color: #27ae60;
+            color: #22d3ee;
             position: absolute;
-            padding: 12px;
+            padding: 15px;
             background: none;
             border: none;
-            transition: color 0.3s;
+            transition: color 0.3s, transform 0.2s;
         }
         .navigate-up:hover, .more-options:hover {
-            color: #219653;
+            color: #06b6d4;
+            transform: scale(1.2);
         }
         .navigate-up {
-            top: 15px;
-            left: 15px;
+            top: 20px;
+            left: 20px;
         }
         .more-options {
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
         }
         button {
-            padding: 14px 28px;
-            margin: 8px;
-            font-size: 1.2em;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.3em;
             cursor: pointer;
-            background-color: #27ae60;
-            color: white;
+            background: linear-gradient(45deg, #22d3ee, #06b6d4);
+            color: #ffffff;
             border: none;
-            border-radius: 10px;
-            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+        button:hover::before {
+            left: 100%;
         }
         button:hover {
-            background-color: #219653;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+            background: linear-gradient(45deg, #06b6d4, #0284c7);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
         button:disabled {
-            background-color: #bdc3c7;
+            background: #6b7280;
             cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
-        #dice {
-            width: 60px;
-            height: 60px;
-            background-color: #fff;
-            border: 3px solid #34495e;
-            margin: 25px auto;
-            font-size: 2.2em;
-            line-height: 60px;
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        .scene {
+            width: 120px;
+            height: 120px;
+            margin: 30px auto;
+            perspective: 800px;
+        }
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: translateZ(-60px);
+            transition: transform 1s ease-in-out;
+        }
+        .cube__face {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 3px solid #ffffff;
+            line-height: 120px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
             text-align: center;
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .cube__face--1 { transform: rotateY(0deg) translateZ(60px); }
+        .cube__face--2 { transform: rotateY(90deg) translateZ(60px); }
+        .cube__face--3 { transform: rotateY(180deg) translateZ(60px); }
+        .cube__face--4 { transform: rotateY(-90deg) translateZ(60px); }
+        .cube__face--5 { transform: rotateX(90deg) translateZ(60px); }
+        .cube__face--6 { transform: rotateX(-90deg) translateZ(60px); }
+        .cube.show-1 { transform: translateZ(-60px) rotateY(0deg); }
+        .cube.show-2 { transform: translateZ(-60px) rotateY(-90deg); }
+        .cube.show-3 { transform: translateZ(-60px) rotateY(-180deg); }
+        .cube.show-4 { transform: translateZ(-60px) rotateY(90deg); }
+        .cube.show-5 { transform: translateZ(-60px) rotateX(-90deg); }
+        .cube.show-6 { transform: translateZ(-60px) rotateX(90deg); }
+        .cube.rolling {
+            animation: roll 0.6s ease-in-out;
         }
         .section {
-            padding: 25px;
-            border-radius: 15px;
+            padding: 30px;
+            border-radius: 20px;
             background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-            animation: fadeIn 0.5s ease-in-out;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            animation: fadeIn 0.6s ease-in-out;
+            transition: background 0.3s;
         }
         body.dark-theme .section {
-            background: rgba(52, 73, 94, 0.85);
+            background: rgba(31, 41, 55, 0.9);
         }
         .hidden {
             display: none;
         }
         .dropdown, input[type="text"], input[type="file"], textarea {
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: 1px solid #bdc3c7;
-            width: 220px;
-            transition: border-color 0.3s;
+            padding: 14px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 2px solid #4b5563;
+            width: 250px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: #f3f4f6;
         }
         .dropdown:focus, input[type="text"]:focus, input[type="file"]:focus, textarea:focus {
-            border-color: #27ae60;
+            border-color: #22d3ee;
+            box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+            outline: none;
         }
         .slider {
-            width: 220px;
-            margin: 12px 0;
-            accent-color: #27ae60;
+            width: 250px;
+            margin: 15px 0;
+            accent-color: #22d3ee;
+            transition: all 0.3s;
         }
         .win-message, .lose-message {
-            font-size: 1.8em;
+            font-size: 2em;
             font-weight: bold;
             text-align: center;
-            margin-top: 25px;
+            margin-top: 30px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
         }
-        .win-message { color: #27ae60; }
-        .lose-message { color: #e74c3c; }
+        .win-message {
+            color: #22c55e;
+            animation: bounce 1s infinite;
+        }
+        .lose-message {
+            color: #ef4444;
+            animation: shake 0.5s;
+        }
         #gameStatus, #botStatus {
-            font-size: 1.3em;
-            margin: 12px 0;
+            font-size: 1.4em;
+            margin: 15px 0;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #userAvatar, #botAvatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        #userAvatar:hover, #botAvatar:hover {
+            transform: scale(1.1);
         }
         p {
-            margin: 12px 0;
-            font-size: 1.2em;
+            margin: 15px 0;
+            font-size: 1.3em;
+            line-height: 1.6;
         }
         .focusable:focus {
-            outline: 3px solid #27ae60;
+            outline: 3px solid #22d3ee;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        @keyframes roll {
+            0% { transform: translateZ(-60px) rotateX(0deg) rotateY(0deg); }
+            50% { transform: translateZ(-60px) rotateX(360deg) rotateY(360deg); }
+            100% { transform: translateZ(-60px) rotateX(720deg) rotateY(720deg); }
         }
     </style>
 </head>
@@ -158,10 +258,9 @@
 
         <!-- Main Screen -->
         <div id="mainScreen" class="section" aria-label="Main Menu">
-         <button class="more-options focusable" onclick="showMoreOptions()" aria-label="More Options">☰</button>
-<p> Snakes and Ladders </p>
+            <button class="more-options focusable" onclick="showMoreOptions()" aria-label="More Options">☰</button>
+            <p>Snakes and Ladders</p>
             <button onclick="startGame()" aria-label="Start Game">Start Game</button>
-   </p>         <button onclick="startGame()" aria-label="Start Game">Start Game</button>
         </div>
 
         <!-- More Options -->
@@ -235,7 +334,7 @@
             <br>
             <label>Profile Photo: <input type="file" id="profilePhoto" accept="image/*" aria-label="Upload Profile Photo"></label>
             <br>
-            <img id="profilePreview" style="max-width: 100px; display: none;" alt="Profile Photo Preview">
+            <img id="profilePreview" style="max-width: 120px; border-radius: 50%; display: none;" alt="Profile Photo Preview">
             <button onclick="saveProfile()" aria-label="Save Profile">Save</button>
             <button onclick="cancelProfile()" aria-label="Cancel Profile Changes">Cancel</button>
         </div>
@@ -271,11 +370,26 @@
 
         <!-- Game Area -->
         <div id="gameArea" class="section hidden" aria-label="Game Area" aria-live="polite">
-            <img id="gameProfilePhoto" style="max-width: 50px; border-radius: 50%; display: none;" alt="Player Profile Photo">
-            <div id="gameStatus">Game ready. Your position: 1</div>
-            <div id="botStatus">Bot's position: 1</div>
+            <img id="gameProfilePhoto" style="max-width: 60px; border-radius: 50%; display: none;" alt="Player Profile Photo">
+            <div style="display: flex; align-items: center;">
+                <img id="userAvatar" src="player.png" alt="User Avatar">
+                <div id="gameStatus">Game ready. Your position: 1</div>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <img id="botAvatar" src="bot.png" alt="Bot Avatar">
+                <div id="botStatus">Bot's position: 1</div>
+            </div>
             <button id="rollDiceButton" onclick="rollDice()" aria-label="Roll Dice">Roll Dice</button>
-            <div id="dice" aria-label="Dice Result"></div>
+            <div class="scene" aria-label="Dice Result">
+                <div class="cube">
+                    <div class="cube__face cube__face--1">1</div>
+                    <div class="cube__face cube__face--2">2</div>
+                    <div class="cube__face cube__face--3">3</div>
+                    <div class="cube__face cube__face--4">4</div>
+                    <div class="cube__face cube__face--5">5</div>
+                    <div class="cube__face cube__face--6">6</div>
+                </div>
+            </div>
             <button onclick="resetGame()" aria-label="Reset Game">Reset Game</button>
         </div>
 
@@ -378,6 +492,7 @@
         };
         let customCommentary = JSON.parse(localStorage.getItem('commentary')) || {};
         let ttsQueue = [], isTtsSpeaking = false;
+        const cube = document.querySelector('.cube');
 
         const snakesAndLadders = { 2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 78: 98, 87: 94, 16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 92: 88, 95: 75, 99: 80 };
 
@@ -508,7 +623,7 @@
         // Language and UI Updates
         function updateText() {
             const lang = content[currentLanguage].translations;
-            document.getElementById("rollDiceButton").textContent = "Roll Dice"; // Always English
+            document.getElementById("rollDiceButton").textContent = "Roll Dice";
             document.getElementById("gameStatus").textContent = `${lang.gameReady}${playerName}${lang.youAreAt}${position}`;
             document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
         }
@@ -578,6 +693,12 @@
             let newPosition = position + dice;
             const lang = content[currentLanguage].translations;
 
+            cube.classList.add('rolling');
+            setTimeout(() => {
+                cube.classList.remove('show-1', 'show-2', 'show-3', 'show-4', 'show-5', 'show-6', 'rolling');
+                cube.classList.add(`show-${dice}`);
+            }, 600);
+
             let statusText = `${playerName}${lang.roll}${dice}.`;
             document.getElementById("gameStatus").textContent = statusText;
             speakText(statusText);
@@ -611,8 +732,6 @@
                 }
             }
 
-            document.getElementById("dice").textContent = dice;
-
             if (position === 100) {
                 handleWin();
             } else {
@@ -634,6 +753,12 @@
             playDiceSound(botDice, false);
             let newBotPosition = botPosition + botDice;
             const lang = content[currentLanguage].translations;
+
+            cube.classList.add('rolling');
+            setTimeout(() => {
+                cube.classList.remove('show-1', 'show-2', 'show-3', 'show-4', 'show-5', 'show-6', 'rolling');
+                cube.classList.add(`show-${botDice}`);
+            }, 600);
 
             let statusText = `${lang.botRolled}${botDice}.`;
             document.getElementById("botStatus").textContent = statusText;
@@ -664,7 +789,6 @@
                 }
             }
 
-            document.getElementById("dice").textContent = botDice;
             statusText = `${lang.botLocation}${botPosition}`;
             document.getElementById("botStatus").textContent = statusText;
             speakText(statusText, () => {
@@ -757,7 +881,7 @@
             const lang = content[currentLanguage].translations;
             document.getElementById("gameStatus").textContent = `${lang.resetMessage}${playerName}${lang.youAreAt}${position}`;
             document.getElementById("botStatus").textContent = `${lang.botLocation}${botPosition}`;
-            document.getElementById("dice").textContent = "";
+            cube.classList.remove('show-1', 'show-2', 'show-3', 'show-4', 'show-5', 'show-6', 'rolling');
 
             speakText(`${lang.resetMessage}${playerName}${lang.youAreAt}${position}`, () => {
                 const turnText = `${playerName}${lang.nowYourTurn}`;
@@ -1066,7 +1190,7 @@
         // Utility Functions
         function updateProfile() {
             document.getElementById('profileDetails').innerHTML = `
-                <img src="${profile.photo || ''}" style="max-width: 100px; border-radius: 50%; ${profile.photo ? '' : 'display: none;'}" alt="Profile Photo">
+                <img src="${profile.photo || ''}" style="max-width: 120px; border-radius: 50%; ${profile.photo ? '' : 'display: none;'}" alt="Profile Photo">
                 <p tabindex="0">Username: ${profile.username}</p>
                 <p tabindex="0">Player Wins: ${profile.wins}</p>
                 <p tabindex="0">Bot Wins: ${profile.botWins}</p>
@@ -1079,7 +1203,7 @@
 
         // Initialization
         function updateUI() {
-            document.getElementById("rollDiceButton").textContent = "Roll Dice"; // Always English
+            document.getElementById("rollDiceButton").textContent = "Roll Dice";
             toggleDarkTheme();
             adjustBgMusicVolume();
             adjustPresetVolume();
@@ -1101,7 +1225,6 @@
             playerName = localStorage.getItem('playerName') || profile.username || '';
             currentLanguage = settings.language;
             updateText();
-            // Apply saved background music setting on load
             if (settings.bgMusic) {
                 backgroundMusic.volume = settings.bgMusicVolume / 100;
                 resetSound.volume = settings.presetVolume / 100;
