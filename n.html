@@ -1,10 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snakes and Ladders</title>
-    <style>
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+        <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
@@ -496,6 +536,52 @@
 
         const snakesAndLadders = { 2: 38, 7: 14, 8: 31, 15: 26, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 78: 98, 87: 94, 16: 6, 46: 25, 49: 11, 62: 19, 64: 60, 74: 53, 89: 68, 92: 88, 95: 75, 99: 80 };
 
+        const voices = {
+            en: [
+                { vid: "Brian", name: "Brian (British)", flag: "GB", lang: "English", accent: "British", gender: "M" },
+                { vid: "Brian", name: "Brian (British)", flag: "GB", lang: "English", accent: "British", gender: "M" },
+                { vid: "Amy", name: "Amy (British)", flag: "GB", lang: "English", accent: "British", gender: "F" },
+                { vid: "Emma", name: "Emma (British)", flag: "GB", lang: "English", accent: "British", gender: "F" },
+                {"vid":"Brian","name":"Brian","flag":"GB","lang":"English","accent":"British","gender":"M"},{"vid":"Amy","name":"Amy","flag":"GB","lang":"English","accent":"British","gender":"F"},{"vid":"Emma","name":"Emma","flag":"GB","lang":"English","accent":"British","gender":"F"},{"vid":"Geraint","name":"Geraint","flag":"GB-WLS","lang":"English","accent":"Welsh","gender":"M"},{"vid":"Russell","name":"Russell","flag":"AU","lang":"English","accent":"Australian","gender":"M"},{"vid":"Nicole","name":"Nicole","flag":"AU","lang":"English","accent":"Australian","gender":"F"},{"vid":"Joey","name":"Joey","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"Justin","name":"Justin","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"Matthew","name":"Matthew","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"Ivy","name":"Ivy","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"Joanna","name":"Joanna","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"Kendra","name":"Kendra","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"Kimberly","name":"Kimberly","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"Salli","name":"Salli","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"Raveena","name":"Raveena","flag":"IN","lang":"English","accent":"Indian","gender":"F"},
+{ vid: "Geraint", name: "Geraint (Welsh)", flag: "GB-WLS", lang: "English", accent: "Welsh", gender: "M" },
+                { vid: "Russell", name: "Russell (Australian)", flag: "AU", lang: "English", accent: "Australian", gender: "M" },
+                {"vid":"en-US-Wavenet-A","name":"Carter","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"en-US-Wavenet-B","name":"Paul","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"en-US-Wavenet-C","name":"Evelyn","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"en-US-Wavenet-D","name":"Liam","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"en-US-Wavenet-E","name":"Jasmine","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"en-US-Wavenet-F","name":"Madison","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"en-US-Standard-B","name":"Mark","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"en-US-Standard-C","name":"Vanessa","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"en-US-Standard-D","name":"Zachary","flag":"US","lang":"English","accent":"American","gender":"M"},{"vid":"en-US-Standard-E","name":"Audrey","flag":"US","lang":"English","accent":"American","gender":"F"},{"vid":"en-GB-Standard-A","name":"Layla","flag":"GB","lang":"English","accent":"British","gender":"F"},{"vid":"en-GB-Standard-B","name":"Ali","flag":"GB","lang":"English","accent":"British","gender":"M"},{"vid":"en-GB-Standard-C","name":"Scarlett","flag":"GB","lang":"English","accent":"British","gender":"F"},{"vid":"en-GB-Standard-D","name":"Oliver","flag":"GB","lang":"English","accent":"British","gender":"M"},{"vid":"en-GB-Wavenet-A","name":"Bella","flag":"GB","lang":"English","accent":"British","gender":"F"},{"vid":"en-GB-Wavenet-B","name":"John","flag":"GB","lang":"English","accent":"British","gender":"M"},{"vid":"en-GB-Wavenet-C","name":"Victoria","flag":"GB","lang":"English","accent":"British","gender":"F"},{"vid":"en-GB-Wavenet-D","name":"Ron","flag":"GB","lang":"English","accent":"British","gender":"M"},{"vid":"en-AU-Standard-A","name":"Zoe","flag":"AU","lang":"English","accent":"Australian","gender":"F"},{"vid":"en-AU-Standard-B","name":"Luke","flag":"AU","lang":"English","accent":"Australian","gender":"M"},{"vid":"en-AU-Wavenet-A","name":"Samantha","flag":"AU","lang":"English","accent":"Australian","gender":"F"},{"vid":"en-AU-Wavenet-B","name":"Steve","flag":"AU","lang":"English","accent":"Australian","gender":"M"},{"vid":"en-AU-Wavenet-C","name":"Courtney","flag":"AU","lang":"English","accent":"Australian","gender":"F"},{"vid":"en-AU-Wavenet-D","name":"Jayden","flag":"AU","lang":"English","accent":"Australian","gender":"M"},{"vid":"en-AU-Standard-C","name":"Ashleigh","flag":"AU","lang":"English","accent":"Australian","gender":"F"},{"vid":"en-AU-Standard-D","name":"Daniel","flag":"AU","lang":"English","accent":"Australian","gender":"M"},{"vid":"en-IN-Wavenet-A","name":"Anushri","flag":"IN","lang":"English","accent":"Indian","gender":"F"},{"vid":"en-IN-Wavenet-B","name":"Sundar","flag":"IN","lang":"English","accent":"Indian","gender":"M"},{"vid":"en-IN-Wavenet-C","name":"Satya","flag":"IN","lang":"English","accent":"Indian","gender":"M"},
+{ vid: "Nicole", name: "Nicole (Australian)", flag: "AU", lang: "English", accent: "Australian", gender: "F" },
+                { vid: "Joey", name: "Joey (American)", flag: "US", lang: "English", accent: "American", gender: "M" },
+                { vid: "Justin", name: "Justin (American)", flag: "US", lang: "English", accent: "American", gender: "M" },
+                { vid: "Matthew", name: "Matthew (American)", flag: "US", lang: "English", accent: "American", gender: "M" },
+                { vid: "Ivy", name: "Ivy (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Joanna", name: "Joanna (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Kendra", name: "Kendra (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Kimberly", name: "Kimberly (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Salli", name: "Salli (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Raveena", name: "Raveena (Indian)", flag: "IN", lang: "English", accent: "Indian", gender: "F" },
+                {vid: "Amy", name: "Amy (British)", flag: "GB", lang: "English", accent: "British", gender: "F" },
+                { vid: "Emma", name: "Emma (British)", flag: "GB", lang: "English", accent: "British", gender: "F" },
+                { vid: "Geraint", name: "Geraint (Welsh)", flag: "GB-WLS", lang: "English", accent: "Welsh", gender: "M" },
+                { vid: "Russell", name: "Russell (Australian)", flag: "AU", lang: "English", accent: "Australian", gender: "M" },
+                { vid: "Nicole", name: "Nicole (Australian)", flag: "AU", lang: "English", accent: "Australian", gender: "F" },
+                { vid: "Joey", name: "Joey (American)", flag: "US", lang: "English", accent: "American", gender: "M" },
+                { vid: "Justin", name: "Justin (American)", flag: "US", lang: "English", accent: "American", gender: "M" },
+                { vid: "Matthew", name: "Matthew (American)", flag: "US", lang: "English", accent: "American", gender: "M" },
+                { vid: "Ivy", name: "Ivy (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Joanna", name: "Joanna (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Kendra", name: "Kendra (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Kimberly", name: "Kimberly (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Salli", name: "Salli (American)", flag: "US", lang: "English", accent: "American", gender: "F" },
+                { vid: "Raveena", name: "Raveena (Indian)", flag: "IN", lang: "English", accent: "Indian", gender: "F" }
+            ],
+            hi: [
+                { vid: "Aditi", name: "Aditi (Hindi)", flag: "IN", lang: "Hindi", accent: "", gender: "F" },
+                { vid: "Kalpana", name: "Kalpana (Hindi)", flag: "IN", lang: "Hindi", accent: "", gender: "F" },
+                { vid: "Hemant", name: "Hemant (Hindi)", flag: "IN", lang: "Hindi", accent: "", gender: "M" },
+                {" vid":"hi-IN-Wavenet-A","name":"Sneha","flag":"IN","lang":"Hindi","accent":"","gender":"F"}, {"vid":"hi-IN-Wavenet-B","name":"Arnav","flag":"IN","lang":"Hindi","accent":"","gender":"M"}, {"vid":"hi-IN-Wavenet-C","name":"Aadhav","flag":"IN","lang":"Hindi","accent":"","gender":"M"},
+{ vid: "Kalpana", name: "Kalpana (Hindi)", flag: "IN", lang: "Hindi", accent: "", gender: "F" },
+{ vid: "Hemant", name: "Hemant (Hindi)", flag: "IN", lang: "Hindi", accent: "", gender: "M" },
+{ vid: "Aditi", name: "Aditi (Hindi)", flag: "IN", lang: "Hindi", accent: "", gender: "F" }
+            ]
+        };
+
         const content = {
             en: {
                 translations: {
@@ -608,16 +694,31 @@
             }
             isTtsSpeaking = true;
             const { text, callback } = ttsQueue.shift();
-            const ttsApiUrl = `https://advanced-tts.darkhacker7301.workers.dev/?message=${encodeURIComponent(text)}&voice=${settings.ttsVoice}`;
-            const audio = new Audio(ttsApiUrl);
-            audio.volume = settings.effectsVolume / 100;
-            audio.play();
-            audio.onended = () => {
-                setTimeout(() => {
+            const ttsApiUrl = `https://advanced-tts.darkhacker7301.workers.dev/?action=create&text=${encodeURIComponent(text)}&voice=${settings.ttsVoice}`;
+            fetch(ttsApiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const audio = new Audio(data.audio_url);
+                        audio.volume = settings.effectsVolume / 100;
+                        audio.play();
+                        audio.onended = () => {
+                            setTimeout(() => {
+                                if (callback) callback();
+                                processTtsQueue();
+                            }, 30);
+                        };
+                    } else {
+                        console.error('TTS API error:', data.error_msg);
+                        if (callback) callback();
+                        processTtsQueue();
+                    }
+                })
+                .catch(error => {
+                    console.error('TTS API fetch error:', error);
                     if (callback) callback();
                     processTtsQueue();
-                }, 30);
-            };
+                });
         }
 
         // Language and UI Updates
@@ -912,10 +1013,14 @@
 
         // Navigation Functions
         function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById(id).focus();
+            document.querySelectorAll('.section, .win-message, .lose-message').forEach(s => s.classList.add('hidden'));
+            const section = document.getElementById(id);
+            section.classList.remove('hidden');
+            section.setAttribute('aria-hidden', 'false');
+            const focusable = section.querySelector('button, [tabindex="0"]');
+            if (focusable) focusable.focus();
         }
+
         function showMoreOptions() { showSection('moreOptions'); }
         function backToMain() { showSection('mainScreen'); }
         function backToMoreOptions() { showSection('moreOptions'); }
@@ -1079,20 +1184,21 @@
         function showTtsVoice() {
             showSection('ttsVoice');
             const select = document.getElementById('ttsVoiceSelect');
-            select.innerHTML = settings.language === 'en' ? `
-                <option value="Brian">Brian (US)</option>
-                <option value="Matthew">Matthew (US)</option>
-                <option value="Joanna">Joanna (US)</option>
-                <option value="Salli">Salli (US)</option>
-                <option value="Raveena">Raveena (Indian)</option>
-                <option value="Aditi">Aditi (Indian)</option>
-            ` : `
-                <option value="Hemant">Hemant (Indian)</option>
-                <option value="Aditi">Aditi (Indian)</option>
-                <option value="Kajal">Kajal (Indian)</option>
-                <option value="Naja">Naja (Indian)</option>
-            `;
-            select.value = settings.ttsVoice;
+            select.innerHTML = '';
+            const langVoices = voices[settings.language];
+            langVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.vid;
+                option.textContent = voice.name;
+                select.appendChild(option);
+            });
+            if (langVoices.some(v => v.vid === settings.ttsVoice)) {
+                select.value = settings.ttsVoice;
+            } else {
+                select.value = langVoices[0].vid;
+                settings.ttsVoice = langVoices[0].vid;
+                saveSettingsData();
+            }
         }
 
         function saveTtsVoice() {
@@ -1106,6 +1212,10 @@
         function changeLanguage() {
             settings.language = document.getElementById("gameLanguage").value;
             currentLanguage = settings.language;
+            const langVoices = voices[settings.language];
+            if (!langVoices.some(v => v.vid === settings.ttsVoice)) {
+                settings.ttsVoice = langVoices[0].vid;
+            }
             updateText();
             saveSettingsData();
         }
@@ -1204,7 +1314,7 @@
         // Initialization
         function updateUI() {
             document.getElementById("rollDiceButton").textContent = "Roll Dice";
-            toggleDarkTheme();
+            document.body.classList.toggle('dark-theme', settings.darkTheme);
             adjustBgMusicVolume();
             adjustPresetVolume();
             adjustEffectsVolume();
@@ -1212,14 +1322,16 @@
 
         window.onload = () => {
             updateUI();
+            showSection('mainScreen');
             const audioElements = document.querySelectorAll('audio');
             audioElements.forEach(sound => {
                 sound.src = sounds[sound.id] || sound.src;
                 sound.load();
             });
 
-            resetSound = document.getElementById("resetSound");
+            rollDiceButton = document.getElementById("rollDiceButton");
             backgroundMusic = document.getElementById("backgroundMusic");
+            resetSound = document.getElementById("resetSound");
             disableRollDice();
             canRollDice = false;
             playerName = localStorage.getItem('playerName') || profile.username || '';
@@ -1232,20 +1344,28 @@
                 backgroundMusic.pause();
                 resetSound.pause();
             }
-            const hammer = new Hammer(document.body, { prevent_default: true });
+
+            const hammer = new Hammer(document.body);
             hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
             hammer.on('swipeup', (e) => {
                 e.preventDefault();
-                if (!gameStarted && !document.getElementById('mainScreen').classList.contains('hidden')) startGame();
+                if (!gameStarted && !document.getElementById('mainScreen').classList.contains('hidden')) {
+                    startGame();
+                }
             });
             hammer.on('swiperight', (e) => {
                 e.preventDefault();
-                if (canRollDice && gameStarted && !hasRolled) rollDice();
+                if (canRollDice && gameStarted && !hasRolled) {
+                    rollDice();
+                }
             });
             hammer.on('swipeleft', (e) => {
                 e.preventDefault();
-                if (gameStarted && !document.getElementById('gameArea').classList.contains('hidden')) resetGame();
+                if (gameStarted && !document.getElementById('gameArea').classList.contains('hidden')) {
+                    resetGame();
+                }
             });
+
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'r' || e.key === 'R') {
                     if (canRollDice && !hasRolled) rollDice();
