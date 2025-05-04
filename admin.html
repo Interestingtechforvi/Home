@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog Admin page - KTM Development Team</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        .title-area {
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .title-area h1 {
+            margin: 0;
+        }
+        .password-form, .admin-content {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .password-form input {
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+        }
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            display: none;
+            margin: 10px 0;
+        }
+        .admin-content input, .admin-content select, .admin-content textarea {
+            width: 100%;
+            margin: 5px 0 15px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .admin-content button {
+            padding: 8px 16px;
+            border-radius: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .preview-area {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .blogs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .blogs-table th, .blogs-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .blogs-table th {
+            background-color: #007bff;
+        }
+        .confirmation-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1000;
+        }
+        .blog-item {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .blog-item button {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-area">
+        <h1>Blog Admin - KTM Development Team</h1>
+    </div>
+    <div class="container">
+        <p class="error-message" id="errorMessage"></p>
+        <div class="password-form" id="passwordForm">
+            <label for="adminName">Enter Your Name:</label>
+            <input id="adminName" type="text" aria-required="true" required />
+            <label for="adminPassword">Enter Admin Password:</label>
+            <input id="adminPassword" type="password" aria-required="true" required />
+            <button id="submitPasswordBtn" aria-label="Continue">Continue</button>
+        </div>
+        <div class="admin-content" id="adminContent" style="display: none;">
+            <p>Here you can write the blogs and publish into Blog platforms hosted by KTM development team.</p>
+            <form id="blogForm">
+                <label for="fullName">Full Name (required):</label>
+                <input id="fullName" name="fullName" required type="text" aria-required="true" />
+                <label for="blogTitle">Blog Title (required):</label>
+                <input id="blogTitle" name="blogTitle" required type="text" aria-required="true" />
+                <label>
+                    <input id="toggleHtml" type="checkbox" /> Toggle HTML
+                </label>
+                <div id="htmlInput" style="display: none;">
+                    <label for="blogHtml">Enter your blog in HTML code (required):</label>
+                    <textarea id="blogHtml" name="blogHtml" rows="10" aria-required="true"></textarea>
+                </div>
+                <div id="markdownInput">
+                    <label for="blogMarkdown">Enter your blog (required):</label>
+                    <textarea id="blogMarkdown" name="blogMarkdown" rows="10" required aria-required="true"></textarea>
+                </div>
+                <label for="blogCategory">Blog Category (required):</label>
+                <select id="blogCategory" name="blogCategory" required aria-required="true">
+                    <option value="">Select Category</option>
+                    <option value="new">Create New Category</option>
+                </select>
+                <input id="otherCategory" name="otherCategory" placeholder="New Category" style="display:none;" type="text" />
+                <button type="button" id="previewBtn" aria-label="Preview blog">Preview</button>
+                <button type="submit" id="publishBtn" aria-label="Publish blog">Publish</button>
+            </form>
+            <div class="preview-area" id="previewArea"></div>
+            <h2>Your Blogs</h2>
+            <table class="blogs-table" id="blogsTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Published On</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="blogActions"></div>
+        </div>
+        <div class="confirmation-message" id="confirmationMessage">
+            <p id="confirmationText">Your blog has been published.</p>
+            <button id="closeConfirmationBtn" aria-label="Close confirmation">OK</button>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, onValue, push, update, remove, serverTimestamp, get } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCe-tHLxNX0g3cRDIJM2f2dfGfhvd1BQcc",
+            authDomain: "interesting-tech-for-v-i.firebaseapp.com",
+            databaseURL: "https://interesting-tech-for-v-i-default-rtdb.firebaseio.com",
+            projectId: "interesting-tech-for-v-i",
+            storageBucket: "interesting-tech-for-v-i.appspot.com",
+            messagingSenderId: "984478442998",
+            appId: "1:984478442998:web:e8a7e99503df1f143b13d7",
+            measurementId: "G-LNBCVYCSDL"
+        };
+
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+        const GEMINI_API_KEY = 'AIzaSyDYeLxp7Jp5qSypbVBPy9v_XYmz7Sc1qfs';
+
+        let app, database, blogsRef, categoriesRef;
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            blogsRef = ref(database, 'blogs');
+            categoriesRef = ref(database, 'categories');
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            showError('Failed to initialize Firebase: ' + error.message);
+            console.error(error);
+        }
+
+        const ADMIN_PASSWORD = 'BlogsByKTM@123';
+        let currentAuthor = localStorage.getItem('adminName') || '';
+
+        let categories = [
+            { value: "android", label: "Android Only" },
+            { value: "blindUpdates", label: "Blinds and Visually Impaired Updates" },
+            { value: "englishLearning", label: "English Learning" },
+            { value: "foodMaking", label: "Food Making" },
+            { value: "animals", label: "Animals" },
+            { value: "vlogs", label: "Vlogs" },
+            { value: "music", label: "Music" },
+            { value: "computerLiteracy", label: "Computer Literacy" },
+            { value: "technology", label: "Technology" },
+            { value: "story", label: "Story" },
+            { value: "entertainment", label: "Entertainment" }
+        ];
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => { errorMessage.style.display = 'none'; }, 5000);
+        }
+
+        function showConfirmation(message) {
+            const confirmationText = document.getElementById("confirmationText");
+            confirmationText.textContent = message;
+            document.getElementById("confirmationMessage").style.display = "block";
+            console.log('Confirmation message shown:', message);
+        }
+
+        function closeConfirmation() {
+            document.getElementById("confirmationMessage").style.display = "none";
+            console.log('Confirmation message closed');
+        }
+
+        function updateCategoryOptions() {
+            const blogCategory = document.getElementById('blogCategory');
+            const options = categories.map(cat => `<option value="${cat.value}">${cat.label}</option>`).join('');
+            blogCategory.innerHTML = '<option value="">Select Category</option><option value="new">Create New Category</option>' + options;
+            console.log('Category options updated:', categories);
+        }
+
+        function saveBlogToLocalStorage(blog) {
+            let localBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
+            const index = localBlogs.findIndex(b => b.id === blog.id);
+            if (index !== -1) {
+                localBlogs[index] = blog;
+            } else {
+                localBlogs.push(blog);
+            }
+            localStorage.setItem('blogs', JSON.stringify(localBlogs));
+        }
+
+        function removeBlogFromLocalStorage(id) {
+            let localBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
+            localBlogs = localBlogs.filter(b => b.id !== id);
+            localStorage.setItem('blogs', JSON.stringify(localBlogs));
+        }
+
+        async function convertTextToHtml(text) {
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Convert the following blog content to HTML code without changing any content or adding additional content. Only provide the html code without any CSS or Java Script code if not required. Provide only the HTML code in a single file format and must not add anything from your side:\n\n${text}`
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Gemini API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const htmlContent = data.candidates[0].content.parts[0].text.replace(/html\n|/g, '').trim();
+                return htmlContent;
+            } catch (error) {
+                showError('Error converting text to HTML: ' + error.message);
+                console.error(error);
+                return text; // Fallback to original text if conversion fails
+            }
+        }
+
+        function displayBlogs(blogs) {
+            const tbody = document.querySelector('#blogsTable tbody');
+            const blogActionsDiv = document.getElementById('blogActions');
+            tbody.innerHTML = '';
+            blogActionsDiv.innerHTML = '';
+            if (blogs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">No blogs found.</td></tr>';
+                return;
+            }
+            blogs.forEach(blog => {
+                const date = new Date(blog.createdAt);
+                // Table row without actions
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${blog.title}</td>
+                    <td>${blog.category}</td>
+                    <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                `;
+                tbody.appendChild(row);
+
+                // Separate blog action item
+                const blogItem = document.createElement('div');
+                blogItem.classList.add('blog-item');
+                blogItem.innerHTML = `
+                    <p><strong>Title:</strong> ${blog.title}</p>
+                    <p><strong>Category:</strong> ${blog.category}</p>
+                    <p><strong>Published:</strong> ${date.toLocaleDateString()} ${date.toLocaleTimeString()}</p>
+                    <button class="edit-btn" data-id="${blog.id}">Edit</button>
+                    <button class="delete-btn" data-id="${blog.id}">Delete</button>
+                `;
+                blogActionsDiv.appendChild(blogItem);
+            });
+
+            // Attach event listeners
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => editBlog(btn.dataset.id));
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.removeEventListener('click', deleteBlog); // Prevent duplicate listeners
+                btn.addEventListener('click', () => deleteBlog(btn.dataset.id));
+            });
+            console.log('Blogs displayed:', blogs);
+        }
+
+        function editBlog(id) {
+            onValue(ref(database, `blogs/${id}`), (snapshot) => {
+                const blog = snapshot.val();
+                if (blog && blog.author === currentAuthor) {
+                    document.getElementById('fullName').value = blog.author;
+                    document.getElementById('blogTitle').value = blog.title;
+                    document.getElementById('toggleHtml').checked = blog.isHtml;
+                    document.getElementById('htmlInput').style.display = blog.isHtml ? 'block' : 'none';
+                    document.getElementById('markdownInput').style.display = blog.isHtml ? 'none' : 'block';
+                    document.getElementById('blogHtml').value = blog.isHtml ? blog.content : '';
+                    document.getElementById('blogMarkdown').value = blog.isHtml ? '' : blog.originalContent || blog.content;
+                    document.getElementById('blogCategory').value = categories.find(cat => cat.label === blog.category)?.value || '';
+                    document.getElementById('publishBtn').textContent = 'Update';
+                    document.getElementById('publishBtn').dataset.id = id;
+                } else {
+                    showError('You can only edit your own blogs');
+                }
+            }, { onlyOnce: true });
+        }
+
+        async function deleteBlog(id) {
+            console.log('Attempting to delete blog with id:', id);
+            try {
+                const blogRef = ref(database, `blogs/${id}`);
+                const snapshot = await get(blogRef);
+                
+                if (!snapshot.exists()) {
+                    console.error('Blog not found:', id);
+                    showError('Blog not found');
+                    return;
+                }
+
+                const blog = snapshot.val();
+                console.log('Blog data retrieved:', blog);
+
+                if (blog.author !== currentAuthor) {
+                    console.error('Unauthorized deletion attempt by', currentAuthor, 'for blog owned by', blog.author);
+                    showError('You can only delete your own blogs');
+                    return;
+                }
+
+                if (!confirm('Are you sure you want to delete this blog?')) {
+                    console.log('Deletion cancelled by user');
+                    return;
+                }
+
+                await remove(blogRef);
+                console.log('Blog deleted from Firebase:', id);
+
+                removeBlogFromLocalStorage(id);
+                console.log('Blog removed from local storage:', id);
+
+                showConfirmation('Blog deleted successfully');
+            } catch (error) {
+                console.error('Error deleting blog:', error);
+                showError(`Failed to delete blog: ${error.message}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordForm = document.getElementById('passwordForm');
+            const adminContent = document.getElementById('adminContent');
+            const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+            const blogForm = document.getElementById('blogForm');
+            const toggleHtml = document.getElementById('toggleHtml');
+            const previewBtn = document.getElementById('previewBtn');
+            const publishBtn = document.getElementById('publishBtn');
+            const closeConfirmationBtn = document.getElementById('closeConfirmationBtn');
+
+            // Check if user is already authenticated
+            const storedPassword = localStorage.getItem('adminPassword');
+            if (storedPassword === ADMIN_PASSWORD && currentAuthor) {
+                passwordForm.style.display = 'none';
+                adminContent.style.display = 'block';
+                document.getElementById('fullName').value = currentAuthor;
+                loadCategories();
+                loadBlogs();
+            }
+
+            submitPasswordBtn.addEventListener('click', () => {
+                const name = document.getElementById('adminName').value.trim();
+                const password = document.getElementById('adminPassword').value;
+                if (!name) {
+                    showError('Please enter your name');
+                    return;
+                }
+                if (password === ADMIN_PASSWORD) {
+                    localStorage.setItem('adminPassword', password);
+                    localStorage.setItem('adminName', name);
+                    currentAuthor = name;
+                    passwordForm.style.display = 'none';
+                    adminContent.style.display = 'block';
+                    document.getElementById('fullName').value = currentAuthor;
+                    loadCategories();
+                    loadBlogs();
+                } else {
+                    showError('Incorrect password');
+                }
+            });
+
+            toggleHtml.addEventListener('change', () => {
+                const isHtml = toggleHtml.checked;
+                document.getElementById('htmlInput').style.display = isHtml ? 'block' : 'none';
+                document.getElementById('markdownInput').style.display = isHtml ? 'none' : 'block';
+                document.getElementById('blogHtml').required = isHtml;
+                document.getElementById('blogMarkdown').required = !isHtml;
+            });
+
+            document.getElementById('blogCategory').addEventListener('change', function () {
+                const otherCategoryInput = document.getElementById('otherCategory');
+                otherCategoryInput.style.display = this.value === 'new' ? 'block' : 'none';
+                otherCategoryInput.required = this.value === 'new';
+            });
+
+            previewBtn.addEventListener('click', async () => {
+                const isHtml = toggleHtml.checked;
+                let content = isHtml ? document.getElementById('blogHtml').value : document.getElementById('blogMarkdown').value;
+                const previewArea = document.getElementById('previewArea');
+                if (!isHtml) {
+                    content = await convertTextToHtml(content);
+                }
+                previewArea.style.display = 'block';
+                previewArea.innerHTML = content;
+                console.log('Preview rendered:', content);
+            });
+
+            blogForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!database) {
+                    showError('Database not initialized');
+                    return;
+                }
+
+                const fullName = document.getElementById('fullName').value.trim();
+                const title = document.getElementById('blogTitle').value.trim();
+                const isHtml = toggleHtml.checked;
+                let content = isHtml ? document.getElementById('blogHtml').value.trim() : document.getElementById('blogMarkdown').value.trim();
+                const originalContent = !isHtml ? content : '';
+                const category = document.getElementById('blogCategory').value;
+                const otherCategory = document.getElementById('otherCategory').value.trim();
+
+                if (!fullName || !title || !content || !category) {
+                    showError('Please fill in all required fields');
+                    return;
+                }
+
+                if (fullName !== currentAuthor) {
+                    showError('You can only publish blogs under your own name');
+                    return;
+                }
+
+                if (category === 'new' && !otherCategory) {
+                    showError('Please provide a new category name');
+                    return;
+                }
+
+                const categoryValue = category === 'new' ? otherCategory.toLowerCase().replace(/\s+/g, '-') : category;
+                const categoryLabel = category === 'new' ? otherCategory : categories.find(cat => cat.value === category)?.label || category;
+
+                if (category === 'new' && otherCategory) {
+                    if (!categories.some(cat => cat.value === categoryValue)) {
+                        const newCat = { value: categoryValue, label: otherCategory };
+                        try {
+                            await push(categoriesRef, newCat);
+                            categories.push(newCat);
+                            updateCategoryOptions();
+                            console.log('New category added:', newCat);
+                        } catch (error) {
+                            showError('Error adding new category: ' + error.message);
+                            console.error(error);
+                            return;
+                        }
+                    }
+                }
+
+                if (!isHtml) {
+                    content = await convertTextToHtml(content);
+                }
+
+                const blogData = {
+                    title,
+                    author: fullName,
+                    category: categoryLabel,
+                    content,
+                    isHtml: true,
+                    originalContent,
+                    createdAt: serverTimestamp()
+                };
+
+                try {
+                    let blogId;
+                    if (publishBtn.dataset.id) {
+                        blogId = publishBtn.dataset.id;
+                        await update(ref(database, `blogs/${blogId}`), blogData);
+                        console.log('Blog updated, id:', blogId);
+                        publishBtn.textContent = 'Publish';
+                        delete publishBtn.dataset.id;
+                        showConfirmation('Blog updated successfully');
+                    } else {
+                        const result = await push(blogsRef, blogData);
+                        blogId = result.key;
+                        console.log('Blog published, key:', blogId);
+                        showConfirmation('Blog published successfully');
+                    }
+                    blogData.id = blogId;
+                    saveBlogToLocalStorage(blogData);
+                    blogForm.reset();
+                    document.getElementById('htmlInput').style.display = 'none';
+                    document.getElementById('markdownInput').style.display = 'block';
+                    document.getElementById('otherCategory').style.display = 'none';
+                    document.getElementById('previewArea').style.display = 'none';
+                } catch (error) {
+                    showError('Error publishing blog: ' + error.message);
+                    console.error(error);
+                }
+            });
+
+            closeConfirmationBtn.addEventListener('click', closeConfirmation);
+
+            function loadCategories() {
+                onValue(categoriesRef, (snapshot) => {
+                    const firebaseCategories = snapshot.val() || {};
+                    const newCategories = Object.values(firebaseCategories);
+                    if (newCategories.length > 0) {
+                        categories = [...categories, ...newCategories];
+                        console.log('Categories loaded:', categories);
+                    }
+                    updateCategoryOptions();
+                }, (error) => {
+                    showError('Error loading categories: ' + error.message);
+                    console.error(error);
+                });
+            }
+
+            function loadBlogs() {
+                onValue(blogsRef, (snapshot) => {
+                    const blogs = [];
+                    if (snapshot.exists()) {
+                        snapshot.forEach((childSnapshot) => {
+                            const blog = childSnapshot.val();
+                            blog.id = childSnapshot.key;
+                            if (blog.author === currentAuthor) {
+                                blogs.push(blog);
+                                saveBlogToLocalStorage(blog);
+                            }
+                        });
+                        blogs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        console.log('Blogs loaded:', blogs);
+                    }
+                    displayBlogs(blogs);
+                }, (error) => {
+                    showError('Error loading blogs: ' + error.message);
+                    console.error(error);
+                    const localBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
+                    displayBlogs(localBlogs.filter(b => b.author === currentAuthor));
+                });
+            }
+        });
+    </script>
+</body>
+</html>

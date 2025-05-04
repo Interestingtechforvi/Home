@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blogs </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        .title-area {
+            background-color: #333;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .title-area h1 {
+            margin: 0;
+        }
+        .quote {
+            font-style: italic;
+            color: #ccc;
+            text-align: center;
+            padding: 10px;
+        }
+        .filter-search {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            transition: opacity 0.5s;
+        }
+        .filter-search select, .filter-search input, .back-button {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            max-width: 200px;
+            width: 100%;
+        }
+        .blogs-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .blog-item {
+            background-color: #222;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .blog-item:hover {
+            transform: scale(1.05);
+        }
+        .blog-details {
+            display: none;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .blog-details h4 {
+            color: #007bff;
+        }
+        .back-button, .action-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .filter-toggle {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .category-filter {
+            display: none;
+            width: 100%;
+            max-width: 200px;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+        }
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            display: none;
+            margin: 10px 0;
+        }
+        .tts-selection, .tts-progress, .tts-player {
+            display: none;
+            background-color: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+        .tts-selection h2, .tts-progress h2, .tts-player h2 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+        .tts-selection select, .tts-selection button, .tts-progress button, .tts-player button {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 100%;
+            margin: 5px 0;
+        }
+        .tts-selection .action-button, .tts-progress .action-button, .tts-player .action-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #333;
+            border-radius: 5px;
+            height: 10px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-area">
+        <h1>Blogs</h1>
+    </div>
+    <div class="container">
+        <p class="quote">Explore Knowledge and Stories through our engaging blogs contents!</p>
+        <p class="error-message" id="errorMessage"></p>
+        <div class="main-content" id="mainContent">
+            <div class="filter-search" id="filterSearch">
+                <div class="filter-toggle">
+                    <button id="toggleFilters" aria-expanded="false" aria-controls="filterOptions">Toggle Filters</button>
+                    <div id="filterOptions" style="display: none;">
+                        <select id="filter" aria-label="Filter blogs">
+                            <option value="default">Default</option>
+                            <option value="atoz">A to Z</option>
+                            <option value="ztoa">Z to A</option>
+                            <option value="newest">Newest Added</option>
+                            <option value="oldest">Oldest Added</option>
+                            <option value="category">By Category</option>
+                        </select>
+                        <div class="category-filter" id="categoryFilter">
+                            <select id="categorySelect" aria-label="Select category">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <input id="search" placeholder="Search Blog Title" type="text" aria-label="Search blogs" />
+            </div>
+            <div class="blogs-list" id="blogsList" role="list"></div>
+            <div class="blog-details" id="blogDetails">
+                <button class="back-button" id="backDetailsBtn" aria-label="Back to blog list">Back</button>
+                <h4>Blog Details</h4>
+                <div id="blogDetailsContent"></div>
+                <button class="action-button" id="copyBlogBtn" aria-label="Copy blog content">Copy Blog</button>
+                <button class="action-button" id="listenBlogBtn" aria-label="Listen to blog">Listen Blog</button>
+            </div>
+            <div class="tts-selection" id="ttsSelection">
+                <h2>Text-to-Speech Settings</h2>
+                <div>
+                    <label for="ttsLanguage" class="block">Select Language</label>
+                    <select id="ttsLanguage" aria-label="Select Language"></select>
+                </div>
+                <div>
+                    <label for="ttsVoice" class="block">Select Voice</label>
+                    <select id="ttsVoice" aria-label="Select Voice"></select>
+                </div>
+                <div>
+                    <button id="ttsBackBtn" class="action-button">Back</button>
+                    <button id="ttsNextBtn" class="action-button" disabled>Next</button>
+                </div>
+            </div>
+            <div class="tts-progress" id="ttsProgress">
+                <h2>Converting to Speech</h2>
+                <div class="progress-bar">
+                    <div id="progressBar" class="progress-fill"></div>
+                </div>
+                <p id="progressText" class="text-center">0%</p>
+            </div>
+            <div class="tts-player" id="ttsPlayer">
+                <h2>Audio Player</h2>
+                <audio id="audioPlayer" class="w-full" controls></audio>
+                <button id="ttsPlayerBackBtn" class="action-button">Back</button>
+            </div>
+        </div>
+    </div>
+    <audio id="copySound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_4b3f1b2d3f.mp3"></audio>
+    <audio id="processingSound" src="https://cdn.pixabay.com/audio/2023/08/08/audio_9b5e4f6f2e.mp3" loop></audio>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCe-tHLxNX0g3cRDIJM2f2dfGfhvd1BQcc",
+            authDomain: "interesting-tech-for-v-i.firebaseapp.com",
+            databaseURL: "https://interesting-tech-for-v-i-default-rtdb.firebaseio.com",
+            projectId: "interesting-tech-for-v-i",
+            storageBucket: "interesting-tech-for-v-i.appspot.com",
+            messagingSenderId: "984478442998",
+            appId: "1:984478442998:web:e8a7e99503df1f143b13d7",
+            measurementId: "G-LNBCVYCSDL"
+        };
+
+        const API_URL = 'https://advanced-tts.darkhacker7301.workers.dev/';
+
+        let app, database, blogsRef, categoriesRef;
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            blogsRef = ref(database, 'blogs');
+            categoriesRef = ref(database, 'categories');
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            showError('Failed to initialize Firebase: ' + error.message);
+            console.error(error);
+        }
+
+        let categories = [
+            { value: "android", label: "Android Only" },
+            { value: "blindUpdates", label: "Blinds and Visually Impaired Updates" },
+            { value: "englishLearning", label: "English Learning" },
+            { value: "foodMaking", label: "Food Making" },
+            { value: "animals", label: "Animals" },
+            { value: "vlogs", label: "Vlogs" },
+            { value: "music", label: "Music" },
+            { value: "computerLiteracy", label: "Computer Literacy" },
+            { value: "technology", label: "Technology" },
+            { value: "story", label: "Story" },
+            { value: "entertainment", label: "Entertainment" }
+        ];
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => { errorMessage.style.display = 'none'; }, 5000);
+        }
+
+        function updateCategoryOptions() {
+            const categorySelect = document.getElementById('categorySelect');
+            const options = categories.map(cat => `<option value="${cat.value}">${cat.label}</option>`).join('');
+            categorySelect.innerHTML = '<option value="">Select Category</option>' + options;
+            console.log('Category options updated:', categories);
+        }
+
+        function displayBlogs(blogList) {
+            const blogsListDiv = document.getElementById("blogsList");
+            blogsListDiv.innerHTML = "";
+            if (blogList.length === 0) {
+                blogsListDiv.innerHTML = '<p>No blogs available.</p>';
+                return;
+            }
+            blogList.forEach((blog) => {
+                const blogDiv = document.createElement("div");
+                blogDiv.classList.add("blog-item");
+                blogDiv.setAttribute("role", "listitem");
+                const date = new Date(blog.createdAt);
+                blogDiv.innerHTML = `
+                    <section>${blog.title}</section>
+                    <p>Published by ${blog.author}, Published on ${date.toLocaleDateString()}, ${date.toLocaleTimeString()}</p>
+                `;
+                blogDiv.addEventListener("click", () => showBlogDetails(blog));
+                blogsListDiv.appendChild(blogDiv);
+            });
+            console.log('Blogs displayed:', blogList);
+        }
+
+        function extractPlainText(content) {
+            const div = document.createElement('div');
+            div.innerHTML = content;
+            return div.textContent || div.innerText || '';
+        }
+
+        function showBlogDetails(blog) {
+            const content = blog.content; // All content is HTML
+            const date = new Date(blog.createdAt);
+            document.getElementById("blogDetailsContent").innerHTML = `
+                <h2>${blog.title}</h2>
+                <p><strong>Published by:</strong> ${blog.author}</p>
+                <p><strong>Published on:</strong> ${date.toLocaleDateString()}</p>
+                <p><strong>Category:</strong> ${blog.category}</p>
+                <div>${content}</div>
+            `;
+            document.getElementById("blogDetails").style.display = "block";
+            document.getElementById("filterSearch").style.display = "none";
+            document.getElementById("blogsList").style.display = "none";
+            document.title = blog.title;
+            console.log('Showing details for blog:', blog.title);
+        }
+
+        function goBack() {
+            document.getElementById("blogDetails").style.display = "none";
+            document.getElementById("ttsSelection").style.display = "none";
+            document.getElementById("ttsProgress").style.display = "none";
+            document.getElementById("ttsPlayer").style.display = "none";
+            document.getElementById("filterSearch").style.display = "flex";
+            document.getElementById("blogsList").style.display = "grid";
+            document.title = 'Blogs - KTM Development Team';
+            applyFilters();
+            console.log('Returned to main view');
+        }
+
+        function applyFilters() {
+            const filterValue = document.getElementById("filter").value;
+            const categoryValue = document.getElementById("categorySelect").value;
+            let filteredBlogs = [...currentBlogs];
+
+            if (filterValue === "atoz") {
+                filteredBlogs.sort((a, b) => a.title.localeCompare(b.title));
+            } else if (filterValue === "ztoa") {
+                filteredBlogs.sort((a, b) => b.title.localeCompare(b.title));
+            } else if (filterValue === "newest") {
+                filteredBlogs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            } else if (filterValue === "oldest") {
+                filteredBlogs.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+            } else if (filterValue === "category" && categoryValue) {
+                filteredBlogs = filteredBlogs.filter(blog => blog.category.toLowerCase() === categoryValue.toLowerCase());
+            }
+
+            const searchTerm = document.getElementById("search").value.toLowerCase();
+            if (searchTerm) {
+                filteredBlogs = filteredBlogs.filter(blog => blog.title.toLowerCase().includes(searchTerm));
+            }
+
+            displayBlogs(filteredBlogs);
+        }
+
+        let currentBlogs = [];
+        let voicesData = [];
+
+        async function fetchVoices() {
+            try {
+                const response = await fetch(`${API_URL}?action=list`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                voicesData = data.voices?.StreamElements?.voices || [];
+                if (voicesData.length === 0) throw new Error('No voices found');
+                populateLanguages();
+            } catch (error) {
+                showError('Failed to load TTS voices');
+                console.error(error);
+            }
+        }
+
+        function populateLanguages() {
+            const ttsLanguage = document.getElementById('ttsLanguage');
+            const languages = [...new Set(voicesData.map(voice => voice.lang))].sort();
+            ttsLanguage.innerHTML = '<option value="">Select a language</option>';
+            languages.forEach(lang => {
+                const option = document.createElement('option');
+                option.value = lang;
+                option.textContent = lang;
+                ttsLanguage.appendChild(option);
+            });
+        }
+
+        function populateVoices(selectedLanguage) {
+            const ttsVoice = document.getElementById('ttsVoice');
+            ttsVoice.innerHTML = '<option value="">Select a voice</option>';
+            const filteredVoices = voicesData.filter(voice => voice.lang === selectedLanguage);
+            filteredVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.vid;
+                option.textContent = voice.name;
+                ttsVoice.appendChild(option);
+            });
+            document.getElementById('ttsNextBtn').disabled = !ttsVoice.value;
+        }
+
+        async function convertTextToSpeech(text, voice) {
+            document.getElementById('ttsSelection').style.display = "none";
+            document.getElementById('ttsProgress').style.display = "block";
+            
+            const processingSound = document.getElementById('processingSound');
+            processingSound.play();
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+                document.getElementById('progressText').textContent = `${progress}%`;
+                if (progress >= 100) clearInterval(progressInterval);
+            }, 200);
+
+            try {
+                const apiUrl = `${API_URL}?action=create&text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.audio_url) {
+                    document.getElementById('audioPlayer').src = data.audio_url;
+                    processingSound.pause();
+                    processingSound.currentTime = 0;
+                    document.getElementById('ttsProgress').style.display = "none";
+                    document.getElementById('ttsPlayer').style.display = "block";
+                } else {
+                    throw new Error('No audio URL returned');
+                }
+            } catch (error) {
+                showError('Error converting text to speech: ' + error.message);
+                console.error(error);
+                processingSound.pause();
+                processingSound.currentTime = 0;
+                goBack();
+            } finally {
+                clearInterval(progressInterval);
+            }
+        }
+
+        function loadData() {
+            if (!database) {
+                showError('Database not initialized');
+                const localBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
+                displayBlogs(localBlogs);
+                return;
+            }
+            onValue(blogsRef, (snapshot) => {
+                currentBlogs = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        const blog = childSnapshot.val();
+                        blog.id = childSnapshot.key;
+                        currentBlogs.push(blog);
+                    });
+                    currentBlogs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    console.log('Blogs loaded:', currentBlogs);
+                }
+                applyFilters();
+            }, (error) => {
+                showError('Error loading blogs: ' + error.message);
+                console.error(error);
+                const localBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
+                displayBlogs(localBlogs);
+            });
+
+            onValue(categoriesRef, (snapshot) => {
+                const firebaseCategories = snapshot.val() || {};
+                const newCategories = Object.values(firebaseCategories);
+                if (newCategories.length > 0) {
+                    categories = [...categories, ...newCategories];
+                    console.log('Categories loaded:', categories);
+                }
+                updateCategoryOptions();
+            }, (error) => {
+                showError('Error loading categories: ' + error.message);
+                console.error(error);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById("toggleFilters").addEventListener("click", () => {
+                const filterOptions = document.getElementById("filterOptions");
+                const isVisible = filterOptions.style.display === "block";
+                filterOptions.style.display = isVisible ? "none" : "block";
+                document.getElementById("toggleFilters").setAttribute("aria-expanded", !isVisible);
+            });
+
+            document.getElementById("filter").addEventListener("change", () => {
+                const filterValue = document.getElementById("filter").value;
+                const categoryFilter = document.getElementById("categoryFilter");
+                categoryFilter.style.display = filterValue === "category" ? "block" : "none";
+                applyFilters();
+            });
+
+            document.getElementById("categorySelect").addEventListener("change", applyFilters);
+            document.getElementById("search").addEventListener("input", applyFilters);
+            document.getElementById("backDetailsBtn").addEventListener("click", goBack);
+
+            document.getElementById("copyBlogBtn").addEventListener("click", () => {
+                const blogContent = document.getElementById("blogDetailsContent").querySelector('div').innerHTML;
+                const text = extractPlainText(blogContent);
+                navigator.clipboard.writeText(text).then(() => {
+                    document.getElementById('copySound').play();
+                    console.log('Blog content copied');
+                }).catch(err => {
+                    showError('Error copying blog: ' + err.message);
+                    console.error(err);
+                });
+            });
+
+            document.getElementById("listenBlogBtn").addEventListener("click", () => {
+                const blogContent = document.getElementById("blogDetailsContent").querySelector('div').innerHTML;
+                const text = extractPlainText(blogContent);
+                document.getElementById("blogDetails").style.display = "none";
+                document.getElementById("ttsSelection").style.display = "block";
+                window.currentTtsText = text;
+                fetchVoices();
+            });
+
+            document.getElementById("ttsLanguage").addEventListener('change', () => {
+                populateVoices(document.getElementById("ttsLanguage").value);
+            });
+
+            document.getElementById("ttsVoice").addEventListener('change', () => {
+                document.getElementById('ttsNextBtn').disabled = !document.getElementById('ttsVoice').value;
+            });
+
+            document.getElementById("ttsNextBtn").addEventListener('click', () => {
+                const voice = document.getElementById('ttsVoice').value;
+                if (voice && window.currentTtsText) {
+                    convertTextToSpeech(window.currentTtsText, voice);
+                }
+            });
+
+            document.getElementById("ttsBackBtn").addEventListener('click', () => {
+                document.getElementById("ttsSelection").style.display = "none";
+                document.getElementById("blogDetails").style.display = "block";
+            });
+
+            document.getElementById("ttsPlayerBackBtn").addEventListener('click', goBack);
+
+            if (app) loadData();
+        });
+    </script>
+</body>
+</html>
