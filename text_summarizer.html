@@ -1,0 +1,180 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        #input-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #text-input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        #summarize-btn {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #summarize-btn:hover {
+            background-color: #3700b3;
+        }
+        #summarize-btn.hidden {
+            display: none;
+        }
+        #spinner {
+            display: none;
+            text-align: center;
+            color: #6200ea;
+            font-weight: bold;
+        }
+        #summary-output {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text Summarizer</h1>
+    <div id="input-form">
+        <textarea id="text-input" rows="6" placeholder="Enter text to summarize..."></textarea>
+        <button id="summarize-btn" onclick="summarizeText()">Summarize Text</button>
+    </div>
+    <div id="spinner">Processing...</div>
+    <div id="summary-output"></div>
+
+    <script>
+        const API_KEY = 'AIzaSyDYeLxp7Jp5qSypbVBPy9v_XYmz7Sc1qfs';
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-w.5-flash-latest:generateContent';
+        const PROMPT_TEMPLATE = 'Please read the following text and provide a concise summary of its main points. Focus solely on summarizing the key themes, ideas, or events presented in the text. Do not include any additional explanations or descriptions outside of the summary itself. Here\'s the text: ';
+
+        async function summarizeText() {
+            const textInput = document.getElementById('text-input');
+            const inputText = textInput.value.trim();
+            const summarizeBtn = document.getElementById('summarize-btn');
+            const spinner = document.getElementById('spinner');
+            const summaryOutput = document.getElementById('summary-output');
+
+            if (!inputText) {
+                summaryOutput.innerHTML = '<div class="alert alert-danger" role="alert">Please enter text to summarize.</div>';
+                return;
+            }
+
+            // Hide button, show spinner, clear output
+            summarizeBtn.classList.add('hidden');
+            spinner.style.display = 'block';
+            summaryOutput.innerHTML = '';
+
+            try {
+                const fullPrompt = PROMPT_TEMPLATE + inputText;
+                const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                parts: [
+                                    { text: fullPrompt }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const summary = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No summary received.';
+                summaryOutput.innerHTML = summary;
+
+                // Clear input
+                textInput.value = '';
+            } catch (error) {
+                console.error('Error:', error);
+                summaryOutput.innerHTML = `<div class="alert alert-danger" role="alert">${error.message}</div>`;
+            } finally {
+                // Show button, hide spinner
+                summarizeBtn.classList.remove('hidden');
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

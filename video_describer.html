@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Video Describer </title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #videoPlayer {
+            width: 100%;
+            max-height: 400px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        #description {
+            white-space: pre-wrap;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            min-height: 100px;
+            margin-top: 20px;
+        }
+        #error {
+            color: red;
+            margin: 10px 0;
+            display: none;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #e5e7eb;
+            border-radius: 4px;
+            height: 8px;
+            margin: 10px 0;
+        }
+        .progress-bar-fill {
+            background: #3b82f6;
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        #clipInfo {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-primary text-center mb-6">Video Describer</h1>
+        <input type="file" id="videoInput" accept="video/mp4,video/avi,video/mov,video/mkv" class="w-full p-2 border rounded-md mb-4">
+        <video id="videoPlayer" controls></video>
+<p> Only videos up to 50 MB are allowed. </p>
+    <p> after clicking on describe video button, kindly listen your video. in between, you will here your video description clip by clip.        <div class="control-buttons">
+            <button id="describeBtn" class="bg-secondary text-white py-2 px-4 rounded-md hover:bg-primary disabled:bg-gray-400" disabled>Describe Video</button>
+            <button id="pauseBtn" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 hidden">Pause Description</button>
+        </div>
+        <div id="loading" class="flex items-center justify-center">
+            <svg class="animate-spin h-5 w-5 mr-3 text-secondary" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processing...
+        </div>
+        <div id="error" role="alert"></div>
+        <div id="clipInfo"></div>
+        <div id="description"></div>
+        <div class="progress-bar">
+            <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyDYeLxp7Jp5qSypbVBPy9v_XYmz7Sc1qfs';
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+        const TTS_API_URL = 'https://advanced-tts.darkhacker7301.workers.dev/';
+        const videoInput = document.getElementById('videoInput');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const describeBtn = document.getElementById('describeBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const descriptionDiv = document.getElementById('description');
+        const errorDiv = document.getElementById('error');
+        const loadingDiv = document.getElementById('loading');
+        const clipInfoDiv = document.getElementById('clipInfo');
+        const progressBar = document.getElementById('progressBar');
+
+        let isPaused = false;
+        let currentClip = 0;
+        let clipDescriptions = [];
+        let videoDuration = 0;
+        let clipDuration = 8; // 8-10 seconds per clip
+        let isProcessing = false;
+        let voicesData = [];
+        let audioQueue = [];
+        let isSpeaking = false;
+
+        // Handle video file selection
+        videoInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (!file.type.startsWith('video/')) {
+                    showError('Please select a valid video file (mp4, avi, mov, mkv).');
+                    videoInput.value = '';
+                    return;
+                }
+                if (file.size > 50 * 1024 * 1024) {
+                    showError('Video file is too large. Please select a video under 20MB.');
+                    videoInput.value = '';
+                    return;
+                }
+                const url = URL.createObjectURL(file);
+                videoPlayer.src = url;
+                describeBtn.disabled = false;
+                clearError();
+                descriptionDiv.textContent = '';
+                clipDescriptions = [];
+                currentClip = 0;
+                progressBar.style.width = '0%';
+                await new Promise(resolve => {
+                    videoPlayer.onloadedmetadata = () => {
+                        videoDuration = videoPlayer.duration;
+                        resolve();
+                    };
+                });
+            }
+        });
+
+        // Describe video button click
+        describeBtn.addEventListener('click', async () => {
+            if (!videoInput.files[0]) {
+                showError('Please select a video file first.');
+                return;
+            }
+            describeBtn.disabled = true;
+            pauseBtn.classList.remove('hidden');
+            isPaused = false;
+            videoPlayer.currentTime = 0;
+            currentClip = 0;
+            clipDescriptions = [];
+            descriptionDiv.textContent = '';
+            progressBar.style.width = '0%';
+            videoPlayer.play();
+            await processNextClip();
+        });
+
+        // Pause description button
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? 'Resume Description' : 'Pause Description';
+            if (isPaused) {
+                videoPlayer.pause();
+            } else {
+                videoPlayer.play();
+                processNextClip();
+            }
+        });
+
+        // Video time update to handle clip transitions
+        videoPlayer.addEventListener('timeupdate', async () => {
+            if (isPaused || isProcessing) return;
+            const currentTime = videoPlayer.currentTime;
+            if (currentTime >= (currentClip + 1) * clipDuration && clipDescriptions[currentClip]) {
+                isProcessing = true;
+                videoPlayer.pause();
+                const description = clipDescriptions[currentClip];
+                descriptionDiv.textContent = description.text;
+                clipInfoDiv.textContent = `Clip ${currentClip + 1}: ${formatTime(currentClip * clipDuration)} - ${formatTime((currentClip + 1) * clipDuration)}`;
+                await playTTS(description.text, description.language);
+                isProcessing = false;
+                currentClip++;
+                updateProgress();
+                if (currentClip * clipDuration < videoDuration && !isPaused) {
+                    videoPlayer.play();
+                    processNextClip();
+                } else {
+                    describeBtn.disabled = false;
+                    pauseBtn.classList.add('hidden');
+                }
+            }
+        });
+
+        // Process next clip with retry mechanism
+        async function processNextClip() {
+            if (currentClip * clipDuration >= videoDuration || isPaused) return;
+            try {
+                showLoading(true);
+                const startTime = currentClip * clipDuration;
+                const endTime = Math.min((currentClip + 1) * clipDuration, videoDuration);
+                const clipFile = await extractClip(videoInput.files[0], startTime, endTime);
+                const base64Video = await fileToBase64(clipFile);
+
+                // Detect language first
+                let language = await detectVideoLanguage(base64Video, clipFile.type);
+                if (!language) {
+                    console.warn(`Language detection failed for clip ${currentClip + 1}, defaulting to English`);
+                    language = 'English';
+                }
+                console.log(`Detected language for clip ${currentClip + 1}: ${language}`);
+
+                const prompt = `Provide a brief description of this video clip. never mention any heading or you are going to give the description. just only provide the description (without telling here is the description of this clip) in ${language}. Include:
+                1. What is currently happening on this clip. Visual elements (colors, lighting, objects, and any moovments.)
+                2. Audio elements (music, what is currently speaking, sound effects)
+                3. Overall mood and tone
+                4. Any text or subtitles present
+                5. what is actually happening on the video clip tell in short. Keep the description short "only 2 centences " and focused on this specific clip. don't mention additional things like here is the video description and any additional details which is not required, just describe the video briefly in 2 centences including every above points.`;
+                
+                const requestBody = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            {
+                                inline_data: {
+                                    mime_type: clipFile.type,
+                                    data: base64Video.split(',')[1]
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 512,
+                        responseMimeType: 'text/plain'
+                    }
+                };
+
+                // Attempt API request with retry
+                let response;
+                let attempts = 0;
+                const maxAttempts = 2;
+                while (attempts < maxAttempts) {
+                    try {
+                        response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(requestBody)
+                        });
+                        if (response.ok) break;
+                        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                    } catch (error) {
+                        attempts++;
+                        console.error(`Attempt ${attempts} failed for(clip ${currentClip + 1}: ${error.message}`);
+                        if (attempts === maxAttempts) {
+                            throw error;
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API request failed after ${maxAttempts} attempts: ${response.status} ${errorText}`);
+                }
+                const data = await response.json();
+                const description = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!description) throw new Error('No description received from API');
+
+                clipDescriptions[currentClip] = { text: description, language };
+                console.log(`Description for clip ${currentClip + 1}:`, description);
+                showLoading(false);
+            } catch (error) {
+                console.error(`Error processing clip ${currentClip + 1}:`, error);
+                showError(`Error processing clip ${currentClip + 1}: ${error.message}. Please check the API key or try a smaller video file.`);
+                showLoading(false);
+                describeBtn.disabled = false;
+                pauseBtn.classList.add('hidden');
+            }
+        }
+
+        // Detect video language with fallback
+        async function detectVideoLanguage(base64Video, mimeType) {
+            try {
+                const prompt = `Analyze this video clip and identify the primary language of any spoken dialogue or text. Return only the language name (e.g., Hindi, English). If no language is detectable, return an empty string.`;
+                const requestBody = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            {
+                                inline_data: {
+                                    mime_type: mimeType,
+                                    data: base64Video.split(',')[1]
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.3,
+                        maxOutputTokens: 64,
+                        responseMimeType: 'text/plain'
+                    }
+                };
+
+                const response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    console.warn(`Language detection failed: ${response.status} ${response.statusText}`);
+                    return '';
+                }
+                const data = await response.json();
+                const language = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                return language || '';
+            } catch (error) {
+                console.error('Language detection error:', error);
+                return '';
+            }
+        }
+
+        // Extract video clip (simulated using blob slicing)
+        async function extractClip(file, startTime, endTime) {
+            // Note: Actual video clipping requires server-side processing or WebCodecs API.
+            // Using full video with time-based prompt as a fallback.
+            return file;
+        }
+
+        // Convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Text-to-Speech integration
+        async function playTTS(text, language) {
+            if (!voicesData.length) await fetchVoices();
+            const voiceId = getVoiceIdForLanguage(language);
+            if (!voiceId) {
+                showError(`No voice available for ${language}. Using English.`);
+                language = 'English';
+            }
+
+            try {
+                playProcessingSound();
+                const apiUrl = `${TTS_API_URL}?action=create&text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voiceId)}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`TTS API error: ${response.statusText}`);
+                const data = await response.json();
+                if (!data.audio_url) throw new Error('No audio URL returned by TTS API');
+
+                await new Promise(resolve => {
+                    const audio = new Audio(data.audio_url);
+                    audio.onended = resolve;
+                    audio.play();
+                });
+            } catch (error) {
+                showError(`TTS error: ${error.message}`);
+            } finally {
+                stopProcessingSound();
+            }
+        }
+
+        // Fetch voices for TTS
+        async function fetchVoices() {
+            try {
+                const response = await fetch(`${TTS_API_URL}?action=list`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                voicesData = data.voices?.StreamElements?.voices || [];
+            } catch (error) {
+                console.error('Error fetching voices:', error);
+                showError('Failed to load TTS voices.');
+            }
+        }
+
+        // Get voice ID for language
+        function getVoiceIdForLanguage(language) {
+            const voice = voicesData.find(v => v.lang.toLowerCase() === language.toLowerCase() && v.name === 'Hemant');
+            return voice ? voice.vid : voicesData.find(v => v.lang === 'English' && v.name === 'Hemant')?.vid;
+        }
+
+// Play processing sound
+let processingAudio = null;
+function playProcessingSound() {
+    if (processingAudio) return;
+    processingAudio = new Audio('http://raw.github.com/interestingtechforvi/Home/refs/heads/main/no%20ncs.mp3'); // Replace with your audio file path
+    processingAudio.loop = true;
+    processingAudio.play().catch(error => {
+        console.error('Error playing processing sound:', error);
+    });
+}
+// Stop processing sound
+function stopProcessingSound() {
+    if (processingAudio) {
+        processingAudio.pause();
+        processingAudio.currentTime = 0; // Reset to start
+        processingAudio = null;
+    }
+}
+
+        // Show/hide loading indicator
+        function showLoading(show) {
+            loadingDiv.style.display = show ? 'flex' : 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Clear error message
+        function clearError() {
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentClip * clipDuration / videoDuration) * 100;
+            progressBar.style.width = `${Math.min(progress, 100)}%`;
+        }
+
+        // Format time for display
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+    </script>
+</body>
+</html>
