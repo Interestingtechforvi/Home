@@ -1,0 +1,312 @@
+```
+# File: lib/main.dart
+# Extension: .dart
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
+import 'dart:io';
+import 'dart:convert';
+
+void main() {
+  runApp(const VideoDescriberApp());
+}
+
+class VideoDescriberApp extends StatelessWidget {
+  const VideoDescriberApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Video Describer',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const VideoDescriberHomePage(),
+    );
+  }
+}
+
+class VideoDescriberHomePage extends StatefulWidget {
+  const VideoDescriberHomePage({super.key});
+
+  @override
+  _VideoDescriberHomePageState createState() => _VideoDescriberHomePageState();
+}
+
+class _VideoDescriberHomePageState extends State<VideoDescriberHomePage> {
+  VideoPlayerController? _controller;
+  String _description = '';
+  bool _isLoading = false;
+  final FlutterTts _flutterTts = FlutterTts();
+  String? _audioPath;
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickVideo() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      allowedExtensions: ['mp4'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      String videoPath = result.files.single.path!;
+      _controller = VideoPlayerController.file(File(videoPath))
+        ..initialize().then((_) {
+          setState(() {});
+          _controller!.play();
+        });
+
+      setState(() { _isLoading = true; });
+      await _extractAudio(videoPath);
+      await _describeAudio();
+      setState(() { _isLoading = false; });
+    }
+  }
+
+  Future<void> _extractAudio(String videoPath) async {
+    String outputPath = '${videoPath.substring(0, videoPath.length - 4)}_audio.mp3';
+    String command = '-i "$videoPath" -vn -acodec mp3 "$outputPath"';
+    await FFmpegKit.execute(command);
+    _audioPath = outputPath;
+  }
+
+  Future<void> _describeAudio() async {
+    if (_audioPath == null) return;
+
+    final file = File(_audioPath!);
+    if (!await file.exists()) return;
+
+    final bytes = await file.readAsBytes();
+    final base64Audio = base64Encode(bytes);
+
+    final response = await http.post(
+      Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'contents': [
+          {
+            'parts': [
+              {'text': 'Describe the content of this audio.'},
+              {'inlineData': {'mimeType': 'audio/mp3', 'data': base64Audio}}
+            ]
+          }
+        ]
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      _description = data['candidates'][0]['content']['parts'][0]['text'];
+      await _flutterTts.speak(_description);
+      setState(() {});
+    } else {
+      _description = 'Error: Could not describe audio.';
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Video Describer')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _controller != null && _controller!.value.isInitialized
+                ? AspectRatio(
+                    aspectRatio: _controller!.value.aspectRatio,
+                    child: VideoPlayer(_controller!),
+                  )
+                : const SizedBox(height: 200, child: Center(child: Text('No video selected'))),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _pickVideo,
+              child: const Text('Pick Video'),
+            ),
+            const SizedBox(height: 20),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : Text(_description.isEmpty ? 'No description yet' : _description),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+# File: pubspec.yaml
+# Extension: .yaml
+name: video_describer_app
+description: A Flutter app to describe video content using Gemini API
+version: 1.0.0+1
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  video_player: ^2.9.1
+  file_picker: ^8.0.0
+  http: ^1.2.2
+  flutter_tts: ^4.0.2
+  ffmpeg_kit_flutter: ^6.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+# File: android/app/build.gradle
+# Extension: .gradle
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.video_describer_app"
+    compileSdk = 34
+    ndkVersion = "26.1.10909125"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    defaultConfig {
+        applicationId = "com.example.video_describer_app"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.20"
+}
+
+flutter {
+    source = "../../.."
+}
+
+# File: android/app/src/main/AndroidManifest.xml
+# Extension: .xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <application
+        android:label="video_describer_app"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resourceName="style/NormalTheme"/>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2"/>
+    </application>
+</manifest>
+
+# File: android/build.gradle
+# Extension: .gradle
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.5.2'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+# File: codemagic.yaml
+# Extension: .yaml
+workflows:
+  android-release:
+    name: Android Release
+    environment:
+      flutter: stable
+      android_signing:
+        - debug
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Install dependencies
+        script: |
+          flutter pub get
+      - name: Build APK
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+    publishing:
+      email:
+        recipients:
+          - your.email@example.com
+        notify:
+          success: true
+          failure: true
+
+# File: README.md
+# Extension: .md
+# Video Describer App
+
+A Flutter app that allows users to select a video, extract audio, describe its content using the Gemini API, and display/speak the description.
+
+## Setup
+
+1. Clone the repository.
+2. Install Flutter SDK.
+3. Run `flutter pub get` to install dependencies.
+4. Replace `YOUR_GEMINI_API_KEY` in `lib/main.dart` with your Gemini API key.
+5. Build the APK with `flutter build apk --release`.
+
+## Codemagic CI/CD
+
+The `codemagic.yaml` file configures the Android build. Push to the `main` branch to trigger a build on Codemagic.
+```
