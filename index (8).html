@@ -1,0 +1,798 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multilingual Text-to-Speech</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background: #f9f9f9;
+      line-height: 1.6;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      font-size: 16px;
+      resize: vertical;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      padding: 10px 20px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    .back-button:hover {
+      background-color: #5a6268;
+    }
+
+    .custom-player {
+      margin-top: 30px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+    }
+
+    .controls button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 18px;
+      border-radius: 50px;
+      cursor: pointer;
+      flex: 1;
+      margin: 0 5px;
+    }
+
+    .controls button:hover {
+      background-color: #0056b3;
+    }
+
+    .speed-control, .volume-control {
+      margin-top: 10px;
+    }
+
+    .download-link {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .download-link:hover {
+      background-color: #218838;
+    }
+
+    .download-container {
+      margin-top: 15px;
+    }
+
+    .download-container a, .download-container button {
+      display: block;
+      margin: 5px 0;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 0.9em;
+      margin-top: 5px;
+      color: #666;
+    }
+
+    .processing-section {
+      text-align: center;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      background-color: #007bff;
+      transition: width 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sr-only" aria-live="polite" id="liveRegion"></div>
+
+<div id="mainSection" class="container" role="form" aria-labelledby="form-heading">
+  <h2 id="form-heading">Multilingual Text-to-Speech</h2>
+
+  <label for="text">Enter your text:</label>
+  <textarea id="text" placeholder="Type something here..." maxlength="2500"
+            aria-describedby="text-instruction" oninput="updateCharCount()"></textarea>
+  <div id="text-instruction" class="sr-only">Enter the text you want to convert to speech.</div>
+  <div id="charCountText" class="char-count"><span id="charCount">0</span>/2500</div>
+  <button onclick="clearText()" aria-label="Clear Text">Clear Text</button>
+
+  <label for="voice">Select Voice:</label>
+  <select id="voice" aria-label="Voice selection"></select>
+
+  <button onclick="generateSpeech()" aria-label="Convert to Speech">Convert to Speech</button>
+</div>
+
+<div id="processingSection" class="processing-section hidden">
+  <h2>Processing...</h2>
+  <div class="progress-bar">
+    <div class="progress" id="progressBar"></div>
+  </div>
+</div>
+
+<audio id="audioPlayer" preload="auto" aria-hidden="true"></audio>
+
+<audio id="processingMusic" preload="auto" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+</audio>
+
+<div id="playerSection" class="custom-player hidden" role="region" aria-labelledby="player-heading">
+  <button class="back-button" id="navBackButton" onclick="goBack()" aria-label="Navigate up">← Navigate Up</button>
+  <h2 id="player-heading" class="sr-only">Audio Controls</h2>
+
+  <div class="controls" role="group" aria-label="Playback controls">
+    <button onclick="rewindAudio()" aria-label="Rewind 10 seconds">⏪ 10s</button>
+    <button onclick="togglePlayPause()" id="playPauseBtn" aria-label="Play">▶</button>
+    <button onclick="fastForward()" aria-label="Fast forward 10 seconds">10s ⏩</button>
+  </div>
+
+  <div class="speed-control">
+    <label for="playbackSpeed">Playback Speed:</label>
+    <select id="playbackSpeed" aria-label="Playback speed">
+      <option value="0.5">0.5x</option>
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2">2x</option>
+    </select>
+  </div>
+
+  <div class="volume-control">
+    <label for="playbackVolume">Playback Volume:</label>
+    <select id="playbackVolume" aria-label="Playback volume">
+      <option value="5">5%</option>
+      <option value="10">10%</option>
+      <option value="15">15%</option>
+      <option value="20">20%</option>
+      <option value="25">25%</option>
+      <option value="30">30%</option>
+      <option value="35">35%</option>
+      <option value="40">40%</option>
+      <option value="45">45%</option>
+      <option value="50" selected>50%</option>
+      <option value="55">55%</option>
+      <option value="60">60%</option>
+      <option value="65">65%</option>
+      <option value="70">70%</option>
+      <option value="75">75%</option>
+      <option value="80">80%</option>
+      <option value="85">85%</option>
+      <option value="90">90%</option>
+      <option value="95">95%</option>
+      <option value="100">100%</option>
+    </select>
+  </div>
+
+  <div id="downloadContainer" class="download-container">
+    <button onclick="downloadMergedAudio()" class="download-link" aria-label="Download merged audio">Download Audio</button>
+  </div>
+</div>
+
+<script>
+  const voiceSelect = document.getElementById('voice');
+  const audioPlayer = document.getElementById('audioPlayer');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const navBackButton = document.getElementById('navBackButton');
+  const liveRegion = document.getElementById('liveRegion');
+  const downloadContainer = document.getElementById('downloadContainer');
+  const processingMusic = document.getElementById('processingMusic');
+  const processingSection = document.getElementById('processingSection');
+  const progressBar = document.getElementById('progressBar');
+  const playbackVolume = document.getElementById('playbackVolume');
+  const playbackSpeed = document.getElementById('playbackSpeed');
+
+  const VOICES = [
+    'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer', 'coral', 'verse', 
+    'ballad', 'ash', 'sage', 'amuch', 'aster', 'brook', 'clover', 'dan', 
+    'elan', 'marilyn', 'meadow', 'jazz', 'rio'
+  ];
+
+  const SYSTEM_PROMPT = "Repeat exactly the below text. Do not include any additional explanations or descriptions outside of the text itself. text:";
+  const CHUNK_SIZE = 1700;
+  let chunkDurations = [];
+  let chunkURLs = [];
+  let currentChunkIndex = 0;
+  let audioBlobs = [];
+  const BASE_VOLUME = 0.5; // Original volume set to 50%
+
+  function populateVoices() {
+    VOICES.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice;
+      option.textContent = capitalize(voice);
+      voiceSelect.appendChild(option);
+    });
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function cleanText(text) {
+    return text.replace(/^(---|```).*$/gm, '')
+               .replace(/[-]{3,}/g, '%20') // Replace --- with %20
+               .replace(/[`]{3,}/g, '%20') // Replace ``` with %20
+               .replace(/\n+/g, '%20') // Replace newlines with %20
+               .trim();
+  }
+
+  function chunkText(text) {
+    const chunks = [];
+    let currentChunk = '';
+    let charCount = 0;
+
+    const words = text.split('%20');
+
+    for (let word of words) {
+      if (charCount + word.length + 1 > CHUNK_SIZE && currentChunk) {
+        chunks.push(currentChunk.trim());
+        currentChunk = '';
+        charCount = 0;
+      }
+      currentChunk += (currentChunk ? '%20' : '') + word;
+      charCount += word.length + 1;
+    }
+
+    if (currentChunk) {
+      chunks.push(currentChunk.trim());
+    }
+
+    return chunks;
+  }
+
+  function generateSpeechURL(userText, voice) {
+    const fullPrompt = `${SYSTEM_PROMPT} ${userText}`;
+    const encodedPrompt = encodeURIComponent(fullPrompt).replace(/%20/g, '+');
+    return `https://text.pollinations.ai/prompt=${encodedPrompt}?model=openai-audio&voice=${voice}`;
+  }
+
+  function updateCharCount() {
+    const textArea = document.getElementById("text");
+    const count = textArea.value.length;
+    document.getElementById("charCount").textContent = count;
+  }
+
+  function clearText() {
+    const textArea = document.getElementById("text");
+    textArea.value = '';
+    updateCharCount();
+    announce("Text cleared.");
+  }
+
+  function updateProgressBar(progress) {
+    progressBar.style.width = `${progress}%`;
+  }
+
+  function storeChunk(chunkIndex, url) {
+    localStorage.setItem(`speechChunk_${chunkIndex}`, url);
+  }
+
+  function getStoredChunk(chunkIndex) {
+    return localStorage.getItem(`speechChunk_${chunkIndex}`);
+  }
+
+  function clearStoredChunks() {
+    Object.keys(localStorage)
+      .filter(key => key.startsWith('speechChunk_'))
+      .forEach(key => localStorage.removeItem(key));
+  }
+
+  async function fetchAudioBlob(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch audio from ${url}`);
+    return await response.blob();
+  }
+
+  async function mergeAudioBlobs(blobs, volumePercentage, speed) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const buffers = await Promise.all(
+      blobs.map(async blob => {
+        const arrayBuffer = await blob.arrayBuffer();
+        return await audioContext.decodeAudioData(arrayBuffer);
+      })
+    );
+
+    // Adjust volume
+    let volume;
+    if (volumePercentage <= 50) {
+      volume = (volumePercentage / 50) * BASE_VOLUME;
+    } else {
+      // Linear increase from BASE_VOLUME at 50% to 1.5 at 100% for enhanced volume
+      volume = BASE_VOLUME + ((volumePercentage - 50) / 50) * (1.5 - BASE_VOLUME);
+    }
+    volume = Math.max(0, Math.min(1.5, volume));
+
+    // Adjust speed by modifying sample rate
+    const totalLength = buffers.reduce((sum, buffer) => sum + Math.round(buffer.length / speed), 0);
+    const sampleRate = buffers[0].sampleRate;
+    const mergedBuffer = audioContext.createBuffer(1, totalLength, sampleRate);
+    let offset = 0;
+
+    for (let buffer of buffers) {
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = volume;
+      source.playbackRate.value = speed;
+      source.connect(gainNode);
+      
+      // Render the adjusted audio
+      const offlineContext = new OfflineAudioContext(1, Math.round(buffer.length / speed), sampleRate);
+      const offlineSource = offlineContext.createBufferSource();
+      offlineSource.buffer = buffer;
+      const offlineGainNode = offlineContext.createGain();
+      offlineGainNode.gain.value = volume;
+      offlineSource.playbackRate.value = speed;
+      offlineSource.connect(offlineGainNode);
+      offlineGainNode.connect(offlineContext.destination);
+      offlineSource.start(0);
+      
+      const renderedBuffer = await offlineContext.startRendering();
+      mergedBuffer.getChannelData(0).set(renderedBuffer.getChannelData(0), offset);
+      offset += renderedBuffer.length;
+    }
+
+    return await bufferToWave(mergedBuffer);
+  }
+
+  // Convert AudioBuffer to WAV Blob
+  function bufferToWave(buffer) {
+    const numOfChan = buffer.numberOfChannels;
+    const length = buffer.length * numOfChan * 2 + 44;
+    const sampleRate = buffer.sampleRate;
+    const bufferArray = new ArrayBuffer(length);
+    const view = new DataView(bufferArray);
+
+    // WAV header
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, length - 8, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numOfChan, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numOfChan * 2, true);
+    view.setUint16(32, numOfChan * 2, true);
+    view.setUint16(34, 16, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, length - 44, true);
+
+    // Write PCM data
+    const channel = buffer.getChannelData(0);
+    let offset = 44;
+    for (let i = 0; i < channel.length; i++, offset += 2) {
+      const s = Math.max(-1, Math.min(1, channel[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+
+    return new Blob([bufferArray], { type: 'audio/wav' });
+  }
+
+  function writeString(view, offset, string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
+
+  async function downloadMergedAudio() {
+    try {
+      if (audioBlobs.length === 0) {
+        announce("No audio available to download.");
+        return;
+      }
+
+      const volumePercentage = parseFloat(playbackVolume.value);
+      const speed = parseFloat(playbackSpeed.value);
+      let mergedBlob;
+      if (audioBlobs.length === 1 && volumePercentage === 50 && speed === 1) {
+        mergedBlob = audioBlobs[0];
+      } else {
+        mergedBlob = await mergeAudioBlobs(audioBlobs, volumePercentage, speed);
+      }
+
+      const url = URL.createObjectURL(mergedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'merged_audio.wav';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      announce("Audio downloaded successfully.");
+    } catch (error) {
+      console.error('Error downloading merged audio:', error);
+      announce("Failed to download audio. Please try again.");
+    }
+  }
+
+  function updateVolume() {
+    const percentage = parseFloat(playbackVolume.value);
+    // Scale volume: 50% is BASE_VOLUME (0.5), above 50% increases to 1.5 at 100%
+    let volume;
+    if (percentage <= 50) {
+      volume = (percentage / 50) * BASE_VOLUME;
+    } else {
+      volume = BASE_VOLUME + ((percentage - 50) / 50) * (1.5 - BASE_VOLUME);
+    }
+    audioPlayer.volume = Math.max(0, Math.min(1.5, volume));
+    announce(`Volume set to ${percentage}%`);
+  }
+
+  async function generateSpeech() {
+    let userText = document.getElementById('text').value.trim();
+    const voice = voiceSelect.value;
+
+    if (!userText) {
+      announce("Please enter some text.");
+      return;
+    }
+
+    if (!voice) {
+      announce("Please select a voice.");
+      return;
+    }
+
+    // Clean and chunk the text
+    userText = cleanText(userText);
+    const textChunks = chunkText(userText);
+    currentChunkIndex = 0;
+    chunkDurations = [];
+    chunkURLs = [];
+    audioBlobs = [];
+    clearStoredChunks();
+
+    // Show processing section and hide main section
+    document.getElementById('mainSection').classList.add('hidden');
+    processingSection.classList.remove('hidden');
+
+    // Play background music
+    processingMusic.play();
+
+    async function preloadNextChunk(nextIndex) {
+      if (nextIndex >= textChunks.length) return;
+
+      const chunk = textChunks[nextIndex];
+      const url = generateSpeechURL(chunk, voice);
+      chunkURLs[nextIndex] = url;
+
+      try {
+        const blob = await fetchAudioBlob(url);
+        audioBlobs[nextIndex] = blob;
+        storeChunk(nextIndex, url);
+      } catch (error) {
+        console.error(`Error preloading chunk ${nextIndex}:`, error);
+      }
+    }
+
+    async function playChunk(index) {
+      if (index >= textChunks.length) {
+        processingSection.classList.add('hidden');
+        document.getElementById('playerSection').classList.remove('hidden');
+        playPauseBtn.focus();
+        announce("All audio chunks played.");
+        return;
+      }
+
+      const chunk = textChunks[index];
+      const url = generateSpeechURL(chunk, voice);
+      chunkURLs[index] = url;
+
+      try {
+        // Fetch and store audio blob
+        if (!audioBlobs[index]) {
+          const blob = await fetchAudioBlob(url);
+          audioBlobs[index] = blob;
+          storeChunk(index, url);
+        }
+
+        // Update audio player
+        audioPlayer.pause();
+        audioPlayer.src = '';
+        audioPlayer.load();
+        audioPlayer.src = URL.createObjectURL(audioBlobs[index]);
+
+        // Set initial volume
+        updateVolume();
+
+        // Simulate progress bar for first chunk
+        if (index === 0) {
+          let progress = 0;
+          const progressInterval = setInterval(() => {
+            progress += 5;
+            updateProgressBar(progress);
+            if (progress >= 100) {
+              clearInterval(progressInterval);
+            }
+          }, 100);
+
+          audioPlayer.oncanplaythrough = () => {
+            clearInterval(progressInterval);
+            updateProgressBar(100);
+            processingMusic.pause();
+            processingMusic.currentTime = 0;
+            processingSection.classList.add('hidden');
+            document.getElementById('playerSection').classList.remove('hidden');
+            playPauseBtn.focus();
+            audioPlayer.play();
+            updatePlayButton(true);
+            announce("Audio is now playing.");
+
+            // Store duration
+            chunkDurations[index] = audioPlayer.duration;
+            // Preload next chunk
+            preloadNextChunk(index + 1);
+          };
+        } else {
+          audioPlayer.oncanplaythrough = () => {
+            audioPlayer.play();
+            updatePlayButton(true);
+            // Preload next chunk
+            preloadNextChunk(index + 1);
+          };
+        }
+
+        audioPlayer.onended = () => {
+          currentChunkIndex++;
+          playChunk(currentChunkIndex);
+        };
+
+        // Set playback speed
+        audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
+      } catch (error) {
+        console.error(`Error playing chunk ${index}:`, error);
+        announce("Error playing audio chunk. Please try again.");
+        goBack();
+      }
+    }
+
+    // Start playing the first chunk
+    await playChunk(0);
+
+    // Playback speed change handler
+    playbackSpeed.addEventListener('change', () => {
+      audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
+    });
+
+    // Volume change handler
+    playbackVolume.addEventListener('change', updateVolume);
+
+    // Update play/pause button on play/pause events
+    audioPlayer.onplay = () => updatePlayButton(true);
+    audioPlayer.onpause = () => updatePlayButton(false);
+  }
+
+  function rewindAudio() {
+    const currentTime = audioPlayer.currentTime;
+    const seekTime = 10; // Rewind by 10 seconds
+
+    if (currentTime - seekTime < 0 && currentChunkIndex > 0) {
+      // Attempt to go to previous chunk
+      const prevIndex = currentChunkIndex - 1;
+      if (audioBlobs[prevIndex] && chunkDurations[prevIndex]) {
+        currentChunkIndex = prevIndex;
+        audioPlayer.src = URL.createObjectURL(audioBlobs[currentChunkIndex]);
+        audioPlayer.load();
+        audioPlayer.oncanplaythrough = () => {
+          const newTime = chunkDurations[currentChunkIndex] - (seekTime - currentTime);
+          audioPlayer.currentTime = Math.max(0, newTime);
+          audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
+          updateVolume();
+          audioPlayer.play();
+          updatePlayButton(true);
+          announce("Rewound to previous chunk.");
+        };
+      } else {
+        announce("Previous chunk not available.");
+      }
+    } else {
+      // Stay in current chunk
+      audioPlayer.currentTime = Math.max(0, currentTime - seekTime);
+      announce("Rewound 10 seconds.");
+    }
+  }
+
+  function fastForward() {
+    const currentTime = audioPlayer.currentTime;
+    const currentDuration = chunkDurations[currentChunkIndex] || audioPlayer.duration;
+    const seekTime = 10; // Fast forward by 10 seconds
+
+    if (currentTime + seekTime > currentDuration && currentChunkIndex < audioBlobs.length - 1) {
+      // Attempt to go to next chunk
+      const nextIndex = currentChunkIndex + 1;
+      if (audioBlobs[nextIndex]) {
+        currentChunkIndex = nextIndex;
+        audioPlayer.src = URL.createObjectURL(audioBlobs[currentChunkIndex]);
+        audioPlayer.load();
+        audioPlayer.oncanplaythrough = () => {
+          const overflowTime = (currentTime + seekTime) - currentDuration;
+          audioPlayer.currentTime = Math.min(chunkDurations[currentChunkIndex] || audioPlayer.duration, overflowTime);
+          audioPlayer.playbackRate = parseFloat(playbackSpeed.value);
+          updateVolume();
+          audioPlayer.play();
+          updatePlayButton(true);
+          announce("Fast forwarded to next chunk.");
+        };
+      } else {
+        announce("Next chunk not available.");
+      }
+    } else {
+      // Stay in current chunk
+      audioPlayer.currentTime = Math.min(currentDuration, currentTime + seekTime);
+      announce("Fast forwarded 10 seconds.");
+    }
+  }
+
+  function togglePlayPause() {
+    if (audioPlayer.paused) {
+      audioPlayer.play();
+      updatePlayButton(true);
+      announce("Playing");
+    } else {
+      audioPlayer.pause();
+      updatePlayButton(false);
+      announce("Paused");
+    }
+  }
+
+  function updatePlayButton(isPlaying) {
+    playPauseBtn.innerHTML = isPlaying ? "⏸" : "▶";
+    playPauseBtn.setAttribute('aria-label', isPlaying ? "Pause" : "Play");
+  }
+
+  function goBack() {
+    audioPlayer.pause();
+    audioPlayer.src = '';
+    processingMusic.pause();
+    processingMusic.currentTime = 0;
+    document.getElementById('playerSection').classList.add('hidden');
+    document.getElementById('processingSection').classList.add('hidden');
+    document.getElementById('mainSection').classList.remove('hidden');
+    clearStoredChunks();
+    audioBlobs.forEach(blob => URL.revokeObjectURL(audioPlayer.src));
+    audioBlobs = [];
+    announce("Returned to main page.");
+    document.getElementById('text').focus();
+  }
+
+  function announce(message) {
+    liveRegion.textContent = message;
+  }
+
+  window.onload = () => {
+    populateVoices();
+    updateCharCount();
+    audioPlayer.volume = BASE_VOLUME; // Set initial volume to 50%
+  };
+</script>
+
+</body>
+</html>
